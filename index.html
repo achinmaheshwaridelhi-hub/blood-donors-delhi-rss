@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blood Donors Delhi | Volunteer Directory & Donation Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Top Navigation Bar -->
+  <header class="navbar">
+    <div class="nav-container">
+      <div class="brand">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#DC2626" stroke="#DC2626"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <span class="brand-title">Blood Donors Delhi</span>
+          <span class="brand-subtitle">Volunteer Group Directory</span>
+        </div>
+      </div>
+
+      <nav class="nav-links">
+        <button class="nav-btn active" data-tab="dashboard">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
+          Dashboard
+        </button>
+        <button class="nav-btn" data-tab="open-requests">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+          Active Requirements
+        </button>
+        <button class="nav-btn" data-tab="completed-requests">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+          Completed Requests
+        </button>
+        
+        <!-- Donor-only Tab -->
+        <button class="nav-btn donor-only-item" data-tab="my-profile">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+          My Profile
+        </button>
+
+        <!-- Admin-only Tabs -->
+        <button class="nav-btn admin-only-item" data-tab="admin-finder">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+          Donor Finder (Admin)
+        </button>
+        <button class="nav-btn admin-only-item" data-tab="google-setup">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 11H5m14 0a2 2 0 0 12 2v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-6a2 2 0 0 12-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 0 12-2m0 0V5a2 2 0 0 12-2h6a2 2 0 0 12 2v2M7 7h10"></path></svg>
+          Google Setup
+        </button>
+      </nav>
+
+      <div class="user-control">
+        <div id="userBadge" class="user-status-pill guest">
+          <span class="dot"></span>
+          <span id="userStatusText">Unauthenticated</span>
+        </div>
+        <button id="authBtn" class="btn btn-primary btn-sm">Login / Register</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="main-content">
+
+    <!-- Tab 1: Dashboard View -->
+    <section id="tab-dashboard" class="tab-pane active">
+      
+      <!-- Welcome Hero Card -->
+      <div class="hero-card">
+        <div class="hero-text">
+          <h1 id="welcomeHeading">Welcome, Blood Donation Volunteer! 👋</h1>
+          <p id="welcomeSubtext">Log your post-donation details, check eligibility, or search for available life-saving blood donors across Delhi NCR.</p>
+          <div class="hero-actions">
+            <button id="heroLogBtn" class="btn btn-crimson btn-lg">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"></path></svg>
+              Log Post-Donation Details
+            </button>
+            <button id="heroRegisterBtn" class="btn btn-outline-light btn-lg">
+              Register New Donor
+            </button>
+          </div>
+        </div>
+
+        <div class="hero-stats-row">
+          <div class="hero-stat-badge">
+            <span class="stat-number" id="totalDonorsCount">0</span>
+            <span class="stat-label">Active Master Donors</span>
+          </div>
+          <div class="hero-stat-badge highlight-stat">
+            <span class="stat-number" id="totalExecutedDonationsCount">0</span>
+            <span class="stat-label">Executed Blood & Component Donations</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- TODAY'S BIRTHDAY DONORS HERO CARD (ADMIN ONLY) -->
+      <div id="todayBirthdaySection" class="section-card admin-only-item" style="border: 2px solid #F59E0B; background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(220, 38, 38, 0.05) 100%);">
+        <div class="card-header">
+          <div class="header-title">
+            <span style="font-size: 1.5rem;">🎂</span>
+            <h2>Today's Birthday Hero Donors! 🎉 (Admin Only)</h2>
+          </div>
+          <span class="badge badge-warning">Birthday Celebrations</span>
+        </div>
+        <div id="birthdayDonorsList" style="display: flex; gap: 16px; flex-wrap: wrap; margin-top: 12px;">
+          <!-- Dynamically populated for Admin -->
+        </div>
+      </div>
+
+      <!-- Eligibility Section -->
+      <div class="section-card eligibility-card">
+        <div class="card-header">
+          <div class="header-title">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#DC2626" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            <h2>Your Donation Eligibility Status</h2>
+          </div>
+          <span id="eligibilityGlobalBadge" class="badge badge-success">Eligible to Donate</span>
+        </div>
+
+        <div class="eligibility-grid">
+          <div class="eligibility-item">
+            <div class="item-info">
+              <span class="dot red-dot"></span>
+              <span class="item-name">Whole Blood</span>
+            </div>
+            <div class="item-status" id="wholeBloodStatus">
+              <span class="status-tag status-green">Eligible Now</span>
+            </div>
+          </div>
+
+          <div class="eligibility-item">
+            <div class="item-info">
+              <span class="dot yellow-dot"></span>
+              <span class="item-name">Platelets (SDP)</span>
+            </div>
+            <div class="item-status" id="plateletsStatus">
+              <span class="status-tag status-green">Eligible Now</span>
+            </div>
+          </div>
+
+          <div class="eligibility-item">
+            <div class="item-info">
+              <span class="dot purple-dot"></span>
+              <span class="item-name">Plasma</span>
+            </div>
+            <div class="item-status" id="plasmaStatus">
+              <span class="status-tag status-green">Eligible Now</span>
+            </div>
+          </div>
+        </div>
+        <p class="eligibility-note">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+          <strong>3-Month Rule:</strong> Donors can donate whole blood once every 90 days (3 months) to ensure donor safety and recovery.
+        </p>
+      </div>
+
+      <!-- TOP 10 HERO DONORS LEADERBOARD -->
+      <div class="leaderboard-section">
+        <div class="card-header">
+          <div class="header-title">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#F59E0B" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
+            <h2>🏆 Top 10 Hero Donors (Highest Donations)</h2>
+          </div>
+          <span class="badge badge-warning">Volunteer Champions</span>
+        </div>
+
+        <div class="table-container">
+          <table class="leaderboard-table">
+            <thead>
+              <tr>
+                <th>Rank</th>
+                <th>Donor ID</th>
+                <th>Donor Name</th>
+                <th>Blood Group</th>
+                <th>Locality</th>
+                <th>Mobile Number</th>
+                <th>Total Donations</th>
+              </tr>
+            </thead>
+            <tbody id="top10LeaderboardTable">
+              <!-- Rendered dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Quick Action Cards Grid -->
+      <div class="dashboard-grid">
+        <div class="info-card">
+          <div class="card-icon red-icon">
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+          </div>
+          <h3>Log Post-Donation</h3>
+          <p>Donated blood recently for a group requirement? Submit venue, component, and photo selfie details.</p>
+          <button class="btn btn-link open-log-modal-btn">Log Donation &rarr;</button>
+        </div>
+
+        <div class="info-card admin-only-item">
+          <div class="card-icon blue-icon">
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+          </div>
+          <h3>Admin Donor Search</h3>
+          <p>Find eligible donors instantly filtered by locality, pincode, blood group, and 90-day eligibility rule.</p>
+          <button class="btn btn-link switch-tab-btn" data-target="admin-finder">Search Donors &rarr;</button>
+        </div>
+
+        <div class="info-card">
+          <div class="card-icon green-icon">
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+          </div>
+          <h3>Completed Requests</h3>
+          <p>View historical fulfilled blood requests and donor attributions across Delhi NCR.</p>
+          <button class="btn btn-link switch-tab-btn" data-target="completed-requests">View Archive &rarr;</button>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Tab 2: Active Requirements View -->
+    <section id="tab-open-requests" class="tab-pane">
+      <div class="pane-header">
+        <div>
+          <h2>Active Patient Blood Requirements (Delhi NCR)</h2>
+          <p>Select a pending blood requirement to mark your donation or share with potential donors.</p>
+        </div>
+        <button id="addReqBtn" class="btn btn-crimson admin-only-item">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          Post Active Requirement (Admin)
+        </button>
+      </div>
+
+      <div id="requirementsList" class="requirements-grid">
+        <!-- Rendered dynamically -->
+      </div>
+    </section>
+
+    <!-- Tab 3: Completed Requests Tabular View -->
+    <section id="tab-completed-requests" class="tab-pane">
+      <div class="pane-header">
+        <div>
+          <h2>Completed Blood Requests Directory (Latest to Oldest)</h2>
+          <p>Filter fulfilled requirements by Donor ID, Patient ID, or Patient Name.</p>
+        </div>
+      </div>
+
+      <!-- Completed Requests Multi-Filter Panel -->
+      <div class="filter-panel">
+        <div class="filter-selects">
+          <div class="select-wrapper" style="flex:2;">
+            <label>Search Patient Name / Hospital</label>
+            <input type="text" id="compSearchPatient" placeholder="Filter by Patient Name or Hospital...">
+          </div>
+          <div class="select-wrapper">
+            <label>Filter by Donor ID</label>
+            <input type="text" id="compFilterDonorId" placeholder="e.g. DNR-002">
+          </div>
+          <div class="select-wrapper">
+            <label>Filter by Donor Name</label>
+            <input type="text" id="compFilterDonorName" placeholder="e.g. Ankush Sharma">
+          </div>
+          <div class="select-wrapper">
+            <label>Filter by Patient ID</label>
+            <input type="text" id="compFilterReqId" placeholder="e.g. REQ-HIST-010">
+          </div>
+          <div class="select-wrapper">
+            <label>Sort Order</label>
+            <select id="compSortOrder">
+              <option value="LATEST_TO_OLDEST">Latest to Oldest (Default)</option>
+              <option value="OLDEST_TO_LATEST">Oldest to Latest</option>
+              <option value="PATIENT_NAME_ASC">Patient Name (A-Z)</option>
+              <option value="DONOR_NAME_ASC">Donor Name (A-Z)</option>
+            </select>
+          </div>
+          <button id="compResetFiltersBtn" class="btn btn-secondary">Reset Filters</button>
+        </div>
+      </div>
+
+      <!-- Entry Counter Bar -->
+      <div class="entries-count-bar">
+        <span>Search Result Status</span>
+        <span id="compEntriesCountBadge" class="entries-count-badge">Showing 0 of 0 entries</span>
+      </div>
+
+      <!-- Tabular Completed Requests Data Table -->
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Req ID</th>
+              <th>Date</th>
+              <th>Patient Name</th>
+              <th>Blood Group</th>
+              <th>Hospital / Area</th>
+              <th>Component</th>
+              <th>Units</th>
+              <th>Hero Donor ID</th>
+              <th>Donor Name</th>
+              <th>Donor Phone</th>
+              <th class="admin-only-item">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="completedRequestsTableBody">
+            <!-- Rendered dynamically sorted latest to oldest -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Tab 4: My Profile View (DONOR ONLY) -->
+    <section id="tab-my-profile" class="tab-pane">
+      <div class="pane-header">
+        <div>
+          <h2>My Volunteer Profile & Contact Info</h2>
+          <p>Update your constant personal details (Home Address, Pincode, Email, Instagram, Office, Profession).</p>
+        </div>
+      </div>
+
+      <div class="profile-card">
+        <form id="myProfileForm">
+          <div class="form-grid">
+            <div class="form-group"><label>Donor ID</label><input type="text" id="myProfileId" readonly style="opacity: 0.7;"></div>
+            <div class="form-group"><label>Full Name *</label><input type="text" id="myProfileName" required></div>
+            <div class="form-group"><label>Mobile Number (WhatsApp) *</label><input type="tel" id="myProfilePhone" required placeholder="10-digit WhatsApp number"></div>
+            <div class="form-group"><label>Blood Group *</label><input type="text" id="myProfileBloodGroup" readonly style="opacity: 0.7;"></div>
+            <div class="form-group"><label>Date of Birth</label><input type="text" id="myProfileDob"></div>
+            <div class="form-group"><label>Home Address / Locality *</label><input type="text" id="myProfileHomeArea" required></div>
+            <div class="form-group"><label>Pincode *</label><input type="text" id="myProfilePincode" required></div>
+            <div class="form-group"><label>Email Address</label><input type="email" id="myProfileEmail"></div>
+            <div class="form-group"><label>Instagram Handle ID</label><input type="text" id="myProfileInstagram"></div>
+            <div class="form-group"><label>Office Locality</label><input type="text" id="myProfileOfficeArea"></div>
+            <div class="form-group"><label>Profession</label><input type="text" id="myProfileProfession"></div>
+          </div>
+          <button type="submit" class="btn btn-crimson" style="margin-top: 16px;">Save Profile Changes</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- Tab 5: Admin Donor Finder View (ADMIN ONLY) -->
+    <section id="tab-admin-finder" class="tab-pane">
+      <div class="pane-header">
+        <div>
+          <h2>Admin Donor Master Directory</h2>
+          <p>Search, filter, edit, wish birthdays, and manage all volunteer donors across Delhi locations.</p>
+        </div>
+      </div>
+
+      <!-- Multi-Criteria Search & Filter Controls -->
+      <div class="filter-panel">
+        <div class="search-input-group">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <input type="text" id="searchInput" placeholder="Search by donor name, phone, locality, or pincode...">
+        </div>
+
+        <div class="filter-selects">
+          <div class="select-wrapper">
+            <label>Blood Group</label>
+            <select id="filterBloodGroup">
+              <option value="ALL">All Blood Groups</option>
+              <option value="A+">A+</option>
+              <option value="A-">A-</option>
+              <option value="B+">B+</option>
+              <option value="B-">B-</option>
+              <option value="O+">O+</option>
+              <option value="O-">O-</option>
+              <option value="AB+">AB+</option>
+              <option value="AB-">AB-</option>
+            </select>
+          </div>
+
+          <div class="select-wrapper">
+            <label>Component Donated</label>
+            <select id="filterComponent">
+              <option value="ALL">All Components</option>
+              <option value="Blood">Whole Blood</option>
+              <option value="Platelets">Platelets (SDP)</option>
+              <option value="Plasma">Plasma</option>
+            </select>
+          </div>
+
+          <div class="select-wrapper">
+            <label>Eligibility (3-Month Rule)</label>
+            <select id="filterEligibility">
+              <option value="ALL">All Donors</option>
+              <option value="ELIGIBLE">Eligible Only (>= 90 Days)</option>
+              <option value="INELIGIBLE">Ineligible (< 90 Days)</option>
+            </select>
+          </div>
+
+          <button id="resetFiltersBtn" class="btn btn-secondary">Reset Filters</button>
+        </div>
+      </div>
+
+      <!-- Donors Table -->
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Donor ID</th>
+              <th>Donor Name</th>
+              <th>Blood Group</th>
+              <th>Total Donations</th>
+              <th>Locality / Address</th>
+              <th>Pincode</th>
+              <th>Mobile Number</th>
+              <th>Age</th>
+              <th>Last Donation</th>
+              <th>Eligibility Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="donorsTableBody">
+            <!-- Rendered dynamically -->
+          </tbody>
+        </table>
+      </div>
+
+    </section>
+
+    <!-- Tab 6: Google Setup & Backend Code (ADMIN ONLY) -->
+    <section id="tab-google-setup" class="tab-pane">
+      <div class="pane-header">
+        <div>
+          <h2>Google Drive & Google Sheets Integration</h2>
+          <p>Link your web application directly to your Gmail account to systematically store patient & donor files in Google Drive and sync 3 Google Sheets tabs (<code>Donor master</code>, <code>Active Requests</code>, <code>Completed Requests</code>).</p>
+        </div>
+        <div id="connectionStatusBadge" class="badge badge-warning">Checking Connection...</div>
+      </div>
+
+      <div class="google-setup-card">
+        <h3>Google Apps Script Webhook Endpoint</h3>
+        
+        <div class="webhook-config-box">
+          <label><strong>Google Apps Script Webhook URL:</strong></label>
+          <div class="input-with-button">
+            <input type="text" id="scriptUrlInput" value="https://script.google.com/macros/s/AKfycbxoLmVXaSL3jnLwnbElh8lXzIhKLo2rQsdO9XKykyyy5DXtKT_KfC17FlAPjmsDeDdWzQ/exec">
+            <button id="saveWebhookBtn" class="btn btn-secondary">Save URL</button>
+            <button id="testConnectionBtn" class="btn btn-primary">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+              Test Connection
+            </button>
+            <button id="syncFromSheetsBtn" class="btn btn-crimson">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg>
+              Sync Live Data from Google Sheets
+            </button>
+          </div>
+          <small class="help-text" id="connectionDetailsText">Click 'Sync Live Data from Google Sheets' to pull all rows directly into the web application!</small>
+        </div>
+
+        <div class="code-box-header">
+          <span>google_apps_script.gs (Paste in Google Apps Script Editor)</span>
+          <button id="copyScriptBtn" class="btn btn-sm btn-outline">Copy Script</button>
+        </div>
+        <pre class="code-block" id="scriptCodeBlock"><code>// Copy code from google_apps_script.gs file</code></pre>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODAL 1: Login & Registration Modal -->
+  <div id="authModal" class="modal-overlay strict-lock active">
+    <div class="modal-card">
+      <button class="close-modal-btn">&times;</button>
+      
+      <div class="modal-tabs">
+        <button class="modal-tab-btn active" data-modaltab="donor-login">Donor Login</button>
+        <button class="modal-tab-btn" data-modaltab="admin-login">Admin Login</button>
+        <button class="modal-tab-btn" data-modaltab="register">New Registration</button>
+      </div>
+
+      <!-- Donor Login Form -->
+      <div id="donor-loginFormPane" class="modal-pane active">
+        <h3>Volunteer Donor Login</h3>
+        <p class="sub-text">Enter your <strong>Full Name</strong> and <strong>Date of Birth</strong> (or registered Mobile No) to log in.</p>
+
+        <form id="donorLoginForm">
+          <div class="form-group">
+            <label>Full Name *</label>
+            <input type="text" id="loginName" placeholder="e.g. Deepak Sharma" required>
+          </div>
+
+          <div class="form-group">
+            <label>Date of Birth or Mobile No *</label>
+            <input type="text" id="loginDob" placeholder="YYYY-MM-DD or 10-digit mobile number" required>
+          </div>
+
+          <button type="submit" class="btn btn-crimson btn-block">Find Account & Login as Donor</button>
+        </form>
+      </div>
+
+      <!-- Admin Login Form -->
+      <div id="admin-loginFormPane" class="modal-pane">
+        <h3>Admin Portal Login</h3>
+        <p class="sub-text">Enter Administrator credentials to manage master donor directory and requirements.</p>
+
+        <form id="adminLoginForm">
+          <div class="form-group">
+            <label>Admin Username / Name *</label>
+            <input type="text" id="adminUser" placeholder="admin" required>
+          </div>
+
+          <div class="form-group">
+            <label>Admin Password / Passcode *</label>
+            <input type="password" id="adminPass" placeholder="Enter admin passcode" required>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block">Login as Administrator</button>
+        </form>
+      </div>
+
+      <!-- Registration Form -->
+      <div id="registerFormPane" class="modal-pane">
+        <h3>New Donor Registration</h3>
+        <p class="sub-text">Register as a volunteer donor with Blood Donors Delhi.</p>
+
+        <form id="registerForm">
+          <div class="form-grid">
+            <div class="form-group"><label>Full Name *</label><input type="text" id="regName" required placeholder="e.g. Rajesh Sharma"></div>
+            <div class="form-group"><label>Mobile Number (WhatsApp) *</label><input type="tel" id="regPhone" required placeholder="10-digit WhatsApp number"></div>
+            <div class="form-group">
+              <label>Blood Group *</label>
+              <select id="regBloodGroup" required>
+                <option value="">Select Blood Group</option>
+                <option value="A+">A+</option><option value="A-">A-</option><option value="B+">B+</option><option value="B-">B-</option>
+                <option value="O+">O+</option><option value="O-">O-</option><option value="AB+">AB+</option><option value="AB-">AB-</option>
+              </select>
+            </div>
+            <div class="form-group"><label>Date of Birth *</label><input type="date" id="regDob" required></div>
+            <div class="form-group"><label>Email Address</label><input type="email" id="regEmail" placeholder="email@example.com"></div>
+            <div class="form-group"><label>Instagram Handle ID</label><input type="text" id="regInstagram" placeholder="@handle"></div>
+            <div class="form-group"><label>Home Locality / Address *</label><input type="text" id="regHomeArea" required placeholder="e.g. Karol Bagh, Delhi"></div>
+            <div class="form-group"><label>Pincode *</label><input type="text" id="regPincode" required placeholder="e.g. 110005"></div>
+            <div class="form-group"><label>Office Locality / Address</label><input type="text" id="regOfficeArea" placeholder="e.g. Connaught Place"></div>
+            <div class="form-group"><label>Profession / Occupation</label><input type="text" id="regProfession" placeholder="e.g. Business / Engineer"></div>
+          </div>
+
+          <button type="submit" class="btn btn-crimson btn-block">Complete Registration</button>
+        </form>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL 2: Post New Patient Requirement Modal -->
+  <div id="addReqModal" class="modal-overlay">
+    <div class="modal-card wide-modal">
+      <button class="close-modal-btn">&times;</button>
+      
+      <div class="modal-tabs">
+        <button class="modal-tab-btn active" data-reqtab="wa-parse">Paste WhatsApp Text (Auto-Parse)</button>
+        <button class="modal-tab-btn" data-reqtab="manual-form">Manual 16-Field Form</button>
+      </div>
+
+      <!-- WhatsApp RegEx Parser Pane -->
+      <div id="waParsePane" class="modal-pane active">
+        <h3>Paste WhatsApp Message Format</h3>
+        <p class="sub-text">Paste the raw text message received from the patient/attendant. The app will automatically extract all 16 fields!</p>
+
+        <form id="waParseForm">
+          <div class="form-group">
+            <textarea id="waTextarea" class="wa-textarea" placeholder="Paste message here..."></textarea>
+          </div>
+
+          <div class="form-group">
+            <label>Upload Hospital Recommendation Letter / Patient Photo</label>
+            <input type="file" id="waFile" accept="image/*,application/pdf">
+          </div>
+
+          <button type="button" id="btnParseWa" class="btn btn-crimson btn-block">Parse Text & Create Active Requirement</button>
+        </form>
+      </div>
+
+      <!-- Manual 16-Field Form Pane -->
+      <div id="manualFormPane" class="modal-pane">
+        <h3>Manual Patient Requirement Entry</h3>
+        <form id="manualReqForm">
+          <div class="form-grid">
+            <div class="form-group"><label>1# Required (Blood/Platelets) *</label><input type="text" id="req1" required placeholder="e.g. Blood"></div>
+            <div class="form-group"><label>2# Blood Group *</label><input type="text" id="req2" required placeholder="e.g. B-"></div>
+            <div class="form-group"><label>3# Replacement Allowed</label><input type="text" id="req3" placeholder="e.g. Not allowed"></div>
+            <div class="form-group"><label>4# No of Units *</label><input type="text" id="req4" required placeholder="e.g. 5 Units"></div>
+            <div class="form-group"><label>5# Hospital Name *</label><input type="text" id="req5" required placeholder="e.g. Kalawati Saran Hospital"></div>
+            <div class="form-group"><label>6# Hospital Area / Location</label><input type="text" id="req6" placeholder="Location link / Area"></div>
+            <div class="form-group"><label>7# Patient Name *</label><input type="text" id="req7" required placeholder="e.g. Adarsh"></div>
+            <div class="form-group"><label>8# Registration/UHID No</label><input type="text" id="req8" placeholder="UHID number"></div>
+            <div class="form-group"><label>9# Patient Home Location</label><input type="text" id="req9" placeholder="e.g. Gurgaon"></div>
+            <div class="form-group"><label>10# Patient Age</label><input type="text" id="req10" placeholder="e.g. 4 yrs"></div>
+            <div class="form-group"><label>11# Patient Gender</label><input type="text" id="req11" placeholder="Male / Female"></div>
+            <div class="form-group"><label>12# Problem / Disease</label><input type="text" id="req12" placeholder="e.g. Blood Cancer"></div>
+            <div class="form-group"><label>13# Attendant Name *</label><input type="text" id="req13" required placeholder="e.g. Rohit Kumar"></div>
+            <div class="form-group"><label>14# Attendant Phone No *</label><input type="tel" id="req14" required placeholder="99997 64995"></div>
+            <div class="form-group"><label>15# Family Member Donation</label><input type="text" id="req15" placeholder="e.g. Not allowed"></div>
+            <div class="form-group"><label>16# Donation Timings</label><input type="text" id="req16" placeholder="10:00 AM to 5:00 PM"></div>
+          </div>
+
+          <div class="form-group">
+            <label>Upload Hospital Recommendation Letter / Patient Photo</label>
+            <input type="file" id="reqFile" accept="image/*,application/pdf">
+          </div>
+
+          <button type="submit" class="btn btn-crimson btn-block">Post Patient Requirement</button>
+        </form>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL 3: Post-Donation Logger Modal -->
+  <div id="logDonationModal" class="modal-overlay">
+    <div class="modal-card">
+      <button class="close-modal-btn">&times;</button>
+      <h3>Log Post-Donation & Complete Request</h3>
+      <p class="sub-text">Record donation details. Logging will move the active request to <strong>Completed Requests</strong>!</p>
+
+      <form id="logDonationForm">
+        <div class="form-group">
+          <label>Select Active Requirement *</label>
+          <select id="logRequirementSelect" required>
+            <!-- Populated dynamically -->
+          </select>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group"><label>Donation Date *</label><input type="date" id="logDate" required></div>
+          <div class="form-group">
+            <label>Component Donated *</label>
+            <select id="logComponent" required>
+              <option value="Blood" selected>Whole Blood</option>
+              <option value="Platelets">Platelets (SDP)</option>
+              <option value="Plasma">Plasma</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Units Donated *</label><input type="number" id="logUnits" min="1" max="10" value="1" required></div>
+          <div class="form-group"><label>Hospital / Donation Venue *</label><input type="text" id="logVenue" placeholder="e.g. Kalawati Saran Children Hospital" required></div>
+          
+          <div class="form-group">
+            <label>How did you feel after donation? *</label>
+            <select id="logFeeling" required>
+              <option value="Great & Energetic">Great & Energetic ⚡</option>
+              <option value="Normal / Good">Normal / Good 😊</option>
+              <option value="Slightly Tired">Slightly Tired 😴</option>
+              <option value="Faint / Dizzy">Faint / Dizzy 💫</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Total Donation Count (Auto / Editable) *</label>
+            <input type="number" id="logCount" min="1" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Feedback / Suggestions for Our Volunteer Team</label>
+          <textarea id="logFeedback" rows="2" placeholder="Any comments, suggestions, or experience notes..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Upload Donation Selfie / Photo</label>
+          <input type="file" id="logSelfieFile" accept="image/*">
+        </div>
+
+        <button type="submit" class="btn btn-crimson btn-block">Log Donation & Shift to Completed Requests</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 4: Edit Donor Modal -->
+  <div id="editDonorModal" class="modal-overlay">
+    <div class="modal-card">
+      <button class="close-modal-btn">&times;</button>
+      <h3>Edit Donor Profile</h3>
+      <p class="sub-text">Update profile details for Donor ID <strong id="editModalDonorId">DNR-xxx</strong>.</p>
+
+      <form id="editDonorForm">
+        <input type="hidden" id="editDonorIdHidden">
+
+        <div class="form-grid">
+          <div class="form-group"><label>Full Name *</label><input type="text" id="editName" required></div>
+          <div class="form-group"><label>Mobile Number (WhatsApp) *</label><input type="tel" id="editPhone" required></div>
+          <div class="form-group">
+            <label>Blood Group *</label>
+            <select id="editBloodGroup" required>
+              <option value="A+">A+</option><option value="A-">A-</option><option value="B+">B+</option><option value="B-">B-</option>
+              <option value="O+">O+</option><option value="O-">O-</option><option value="AB+">AB+</option><option value="AB-">AB-</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Date of Birth</label><input type="text" id="editDob" placeholder="YYYY-MM-DD"></div>
+          <div class="form-group"><label>Home Address / Locality *</label><input type="text" id="editHomeArea" required></div>
+          <div class="form-group"><label>Pincode *</label><input type="text" id="editPincode" required></div>
+          <div class="form-group"><label>Office Locality</label><input type="text" id="editOfficeArea"></div>
+          <div class="form-group"><label>Profession</label><input type="text" id="editProfession"></div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block">Save Profile Changes</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 5: Generate Hindi WhatsApp Congratulatory Message (ADMIN ONLY) -->
+  <div id="congratulateModal" class="modal-overlay">
+    <div class="modal-card wide-modal">
+      <button class="close-modal-btn">&times;</button>
+      <h3>💬 WhatsApp Congratulatory Message (Hindi)</h3>
+      <p class="sub-text">Copy or share this official Hindi message to congratulate the donor in your WhatsApp group!</p>
+
+      <div class="form-group">
+        <textarea id="congratulateTextarea" rows="15" class="wa-textarea" style="font-family: inherit; font-size: 0.95rem; line-height: 1.6;"></textarea>
+      </div>
+
+      <div style="display: flex; gap: 12px;">
+        <button id="copyCongratulateBtn" class="btn btn-secondary" style="flex: 1;">📋 Copy Message</button>
+        <button id="shareCongratulateBtn" class="btn btn-success" style="flex: 1; background-color: #25D366; color: white;">💬 Share on WhatsApp</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notification Toast -->
+  <div id="toast" class="toast">
+    <span id="toastMsg">Action completed successfully!</span>
+  </div>
+
+  <script src="donors_data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
