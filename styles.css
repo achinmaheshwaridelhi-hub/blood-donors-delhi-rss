@@ -113,14 +113,49 @@ body {
   background-color: var(--primary-crimson);
 }
 
-/* Role Visibility Classes */
-.admin-only-item { display: none !important; }
-body.is-admin .admin-only-item { display: flex !important; }
-body.is-admin button.admin-only-item { display: inline-flex !important; }
+/* Role Visibility Classes (Strict Overrides for Admin & Donor Roles) */
+.admin-only-item {
+  display: none !important;
+}
 
-.donor-only-item { display: none !important; }
-body.is-donor .donor-only-item { display: flex !important; }
-body.is-donor button.donor-only-item { display: inline-flex !important; }
+body.is-admin button.admin-only-item {
+  display: inline-flex !important;
+}
+
+body.is-admin div.admin-only-item,
+body.is-admin section.admin-only-item:not(.tab-pane) {
+  display: block !important;
+}
+
+body.is-admin span.admin-only-item {
+  display: inline-block !important;
+}
+
+.donor-only-item {
+  display: none !important;
+}
+
+body.is-donor button.donor-only-item {
+  display: inline-flex !important;
+}
+
+body.is-donor div.donor-only-item,
+body.is-donor section.donor-only-item:not(.tab-pane) {
+  display: block !important;
+}
+
+body.is-donor span.donor-only-item {
+  display: inline-block !important;
+}
+
+/* Tab Pane Isolation: Only active tab pane is displayed */
+.tab-pane {
+  display: none !important;
+}
+
+.tab-pane.active {
+  display: block !important;
+}
 
 .user-control {
   display: flex;
@@ -619,40 +654,151 @@ body.is-donor button.donor-only-item { display: inline-flex !important; }
   font-weight: 700;
 }
 
-/* DATA TABLES - NO TABLE CUT OFF FIX */
+/* DATA TABLES - NO TABLE CUT OFF FIX & RED VISUAL SCROLLBAR */
 .table-container {
   background-color: var(--card-bg);
   border: 1px solid var(--card-border);
   border-radius: 12px;
-  overflow-x: auto;
-  width: 100%;
+  overflow-x: auto !important;
+  width: 100% !important;
+  max-width: 100% !important;
   -webkit-overflow-scrolling: touch;
+  margin-top: 16px;
+  scrollbar-width: auto;
+  scrollbar-color: var(--primary-crimson) #0F172A;
+}
+
+.table-container::-webkit-scrollbar {
+  height: 10px;
+}
+.table-container::-webkit-scrollbar-track {
+  background: #0F172A;
+  border-radius: 4px;
+}
+.table-container::-webkit-scrollbar-thumb {
+  background: #DC2626;
+  border-radius: 4px;
+}
+
+/* Visible hint so people know there's more to see + know they can scroll */
+.scroll-hint {
+  margin-top: 12px;
+  font-size: 0.78rem;
+  color: var(--status-orange);
+  background-color: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: 8px;
+  padding: 6px 12px;
+  display: inline-block;
+}
+
+/* Keep the ID column pinned & visible while scrolling right through wide tables */
+.sticky-col {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  background-color: var(--card-bg);
+  box-shadow: 2px 0 6px rgba(0, 0, 0, 0.35);
+}
+
+.data-table thead th.sticky-col {
+  background-color: #0B1120;
+  z-index: 3;
+}
+
+.data-table tbody tr:hover td.sticky-col {
+  background-color: #24334a;
+}
+
+/* Compact tables: fold secondary info into a sub-line under the primary cell so
+   the whole table fits on one screen without needing a forced min-width / scroll. */
+.data-table.compact-table {
+  min-width: 0 !important;
+  width: 100% !important;
+  table-layout: auto;
+}
+
+.compact-table th,
+.compact-table td {
+  white-space: normal;
+  padding: 10px 12px;
+  font-size: 0.82rem;
+  vertical-align: top;
+}
+
+.sub-line {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-top: 3px;
+  line-height: 1.4;
+  white-space: normal;
+}
+
+/* Row-level eligibility color coding (Donor Finder table) */
+.row-eligible td {
+  background-color: rgba(16, 185, 129, 0.07);
+}
+.row-ineligible td {
+  background-color: rgba(220, 38, 38, 0.09);
+}
+.row-eligible:hover td {
+  background-color: rgba(16, 185, 129, 0.14);
+}
+.row-ineligible:hover td {
+  background-color: rgba(220, 38, 38, 0.16);
+}
+
+.eligibility-legend {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  margin-top: 12px;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+.legend-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+.legend-green { background-color: var(--status-green); }
+.legend-red { background-color: var(--primary-crimson); }
+
+/* Leaderboard: extra compact so Top 10 fits in one frame without scrolling */
+.leaderboard-table th,
+.leaderboard-table td {
+  padding: 8px 10px;
+  font-size: 0.8rem;
 }
 
 .data-table {
-  width: 100%;
+  width: 100% !important;
+  min-width: 1450px !important;
   border-collapse: collapse;
   text-align: left;
+  table-layout: auto;
 }
 
 .data-table th {
-  background-color: #0F172A;
+  background-color: #0B1120;
   color: var(--text-muted);
-  font-size: 0.75rem;
+  font-size: 0.78rem;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  padding: 12px 10px;
+  padding: 12px 14px;
   border-bottom: 1px solid var(--card-border);
   white-space: nowrap;
 }
 
 .data-table td {
-  padding: 10px 12px;
+  padding: 12px 14px;
   border-bottom: 1px solid #334155;
-  font-size: 0.82rem;
-  white-space: normal;
-  word-break: break-word;
-  max-width: 200px;
+  font-size: 0.84rem;
+  white-space: nowrap;
 }
 
 .data-table tbody tr:hover {
@@ -1010,4 +1156,25 @@ body.is-donor button.donor-only-item { display: inline-flex !important; }
     padding: 16px;
     max-height: 95vh;
   }
+}
+
+
+/* Locality & Pincode Wrapped Column Styling */
+.compact-table th.col-locality,
+.compact-table td.col-locality {
+  white-space: normal !important;
+  word-break: break-word !important;
+  overflow-wrap: break-word !important;
+  max-width: 140px !important;
+  width: 140px !important;
+  line-height: 1.35 !important;
+  padding: 8px 10px !important;
+}
+
+.pincode-badge {
+  display: inline-block;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin-top: 2px;
 }

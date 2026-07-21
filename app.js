@@ -1,23 +1,8 @@
-
-function parseJsDate(dateStr) {
-  if (!dateStr || dateStr === "Not Available" || dateStr === "N/A") return 0;
-  var s = String(dateStr).trim();
-  s = s.replace(" ", "T");
-  var d = new Date(s);
-  if (!isNaN(d.getTime())) return d.getTime();
-  
-  var m = s.match(/(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
-  if (m) {
-    return new Date(parseInt(m[1]), parseInt(m[2]) - 1, parseInt(m[3])).getTime();
-  }
-  return 0;
-}
-
 /* ======================================================
-   BLOOD DONORS DELHI - APPLICATION LOGIC
-   Official Hindi WhatsApp Congratulatory Message,
-   3 Component Counters (Blood, Platelets, Plasma),
-   Aggressive Question Cleaner & Admin Security
+   BLOOD DONORS DELHI - APPLICATION LOGIC (v2.0)
+   Unique Donor ID Generation, Conditional RSS Congratulatory Line,
+   Family Donation Slip Upload, 3 Initial Component Counts,
+   Locality Autocomplete, Admin Eligibility Overrides & Live Sync
    ====================================================== */
 
 const DEFAULT_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbxoLmVXaSL3jnLwnbElh8lXzIhKLo2rQsdO9XKykyyy5DXtKT_KfC17FlAPjmsDeDdWzQ/exec";
@@ -36,13 +21,17 @@ let appState = {
 const ELIGIBILITY_DAYS = 90;
 const CURRENT_APP_DATE = new Date("2026-07-19");
 
+// Admin credentials (change these to your own secret values before deploying).
+// Username match is case-insensitive; password match is case-sensitive.
+const ADMIN_USERNAME = "admin";
+const ADMIN_PASSCODE = "Blood@123";
+
 document.addEventListener("DOMContentLoaded", () => {
   initData();
   setupEventListeners();
   renderAllViews();
   fetchLiveDataFromGoogleSheets(false);
   checkAuthenticationGuard();
-  setInterval(() => fetchLiveDataFromGoogleSheets(false), 60000);
 });
 
 function initData() {
@@ -53,9 +42,12 @@ function initData() {
   if (typeof INITIAL_DONORS !== "undefined") {
     appState.donors = INITIAL_DONORS.map(d => ({
       ...d,
+      rssMember: d.rssMember || "No",
       bloodDonations: d.bloodDonations || d.totalDonations || 1,
       plateletsDonations: d.plateletsDonations || 0,
-      plasmaDonations: d.plasmaDonations || 0
+      plasmaDonations: d.plasmaDonations || 0,
+      eligibilityStatus: d.eligibilityStatus || "Eligible",
+      nextEligibilityDate: d.nextEligibilityDate || "Eligible Now"
     }));
   }
   if (typeof INITIAL_COMPLETED_REQUIREMENTS !== "undefined") {
@@ -76,16 +68,13 @@ function cleanPhone(phoneStr) {
 
 function cleanWaValue(rawVal) {
   if (!rawVal) return "";
-  let s = String(rawVal).trim();
-  s = s.replace(/\*/g, "");
+  let s = String(rawVal).trim().replace(/\*/g, "");
 
-  // If line starts with N# or N. (e.g. "1# Required Blood - B Negative" or "3# Replacement with other blood group - not allowed")
   const numMatch = s.match(/^(?:\d+#|\d+\.)\s*(.*?)(?:[~\-:–=]\s*)(.*)$/s);
   if (numMatch) {
     s = numMatch[2].trim();
   }
 
-  // Strip explicit question prefixes regardless of delimiter used
   const questionPrefixes = [
     /^(?:1#|1\.)?\s*Required\s*(?:Blood\s*or\s*platelets)?\s*(?:\(.*\))?[\s~:\-–=]*/i,
     /^(?:2#|2\.)?\s*Blood\s*Group[\s~:\-–=]*/i,
@@ -102,14 +91,13 @@ function cleanWaValue(rawVal) {
     /^(?:13#|13\.)?\s*Attendant\s*Name[\s~:\-–=]*/i,
     /^(?:14#|14\.)?\s*Attendant\s*Phone\s*(?:No)?\s*(?:\(.*\))?[\s~:\-–=]*/i,
     /^(?:15#|15\.)?\s*Family\s*Member\s*Donation[\s~:\-–=]*/i,
-    /^(?:16#|16\.)?\s*Blood\s*Donation\s*Timings\s*(?:\(.*\))?[\s~:\-–=]*/i,
+    /^(?:16#|16\.)?\s*Blood\s*Donation\s*Timings\s*(?:\(.*\))?[\s~:\-–=]*/i
   ];
 
   questionPrefixes.forEach(pat => {
     s = s.replace(pat, "");
   });
 
-  // Strip remaining parenthetical headers
   s = s.replace(/Blood Donation Timings \([^)]*\)/gi, "");
   s = s.replace(/Required \(Blood or platelets\)/gi, "");
   s = s.replace(/Replacement with other blood group\([^)]*\)/gi, "");
@@ -125,14 +113,43 @@ function cleanWaValue(rawVal) {
   return s.trim();
 }
 
+function parseJsDate(dateStr) {
+  if (!dateStr || dateStr === "Not Available" || dateStr === "N/A") return 0;
+  let s = String(dateStr).trim().replace(" ", "T");
+  let d = new Date(s);
+  if (!isNaN(d.getTime())) return d.getTime();
+  
+  let m = s.match(/(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+  if (m) {
+    return new Date(parseInt(m[1]), parseInt(m[2]) - 1, parseInt(m[3])).getTime();
+  }
+  return 0;
+}
+
+function generateUniqueDonorId() {
+  let maxNum = 0;
+  appState.donors.forEach(d => {
+    const match = String(d.id || "").match(/DNR-(\d+)/i);
+    if (match) {
+      const n = parseInt(match[1]);
+      if (n > maxNum) maxNum = n;
+    }
+  });
+  return `DNR-${String(maxNum + 1).padStart(3, '0')}`;
+}
+
 function checkAuthenticationGuard() {
   const authModal = document.getElementById("authModal");
+  if (!authModal) return;
   if (!appState.currentUser && !appState.userRole) {
+    switchModalTab("donor-login");
     authModal.classList.add("strict-lock");
     authModal.classList.add("active");
+    authModal.style.display = "flex";
   } else {
     authModal.classList.remove("strict-lock");
     authModal.classList.remove("active");
+    authModal.style.display = "none";
   }
 }
 
@@ -159,8 +176,11 @@ function unlockAndCloseAuthModal() {
   if (authModal) {
     authModal.classList.remove("strict-lock");
     authModal.classList.remove("active");
+    authModal.style.display = "none";
   }
 }
+
+let latestFetchSeq = 0;
 
 function fetchLiveDataFromGoogleSheets(userTriggered = false) {
   const url = appState.webhookUrl;
@@ -172,26 +192,45 @@ function fetchLiveDataFromGoogleSheets(userTriggered = false) {
     badge.textContent = "Syncing with Google Sheets...";
   }
 
-  const scriptId = "jsonp_google_sheets_script";
-  const existingScript = document.getElementById(scriptId);
-  if (existingScript) existingScript.remove();
+  // Each request gets its own sequence number + its own JSONP callback name.
+  // If an older, slower request's response arrives AFTER a newer one (out-of-order,
+  // e.g. the 60-second auto-refresh overlapping a just-triggered manual refresh right
+  // after logging a donation), we now DISCARD the stale response instead of letting it
+  // wipe out fresher data. This is what caused completed requests to "flash and disappear".
+  const mySeq = ++latestFetchSeq;
+  const callbackName = "handleSheetsData_" + mySeq;
+  const scriptId = "jsonp_google_sheets_script_" + mySeq;
+
+  window[callbackName] = function(response) {
+    delete window[callbackName];
+    const scr = document.getElementById(scriptId);
+    if (scr) scr.remove();
+    if (mySeq !== latestFetchSeq) return; // stale response, ignore
+    applySheetsData(response, badge);
+  };
 
   const script = document.createElement("script");
   script.id = scriptId;
-  script.src = `${url}?action=FETCH_LIVE&callback=handleSheetsData&t=${Date.now()}`;
+  script.src = `${url}?action=FETCH_LIVE&callback=${callbackName}&t=${Date.now()}`;
   script.onerror = () => {
+    delete window[callbackName];
+    if (mySeq !== latestFetchSeq) return;
     if (badge) {
       badge.className = "badge badge-warning";
       badge.textContent = "Offline Mode";
     }
-    if (userTriggered) showToast("Could not sync with Google Sheets. Check script deployment settings.");
+    if (userTriggered) showToast("Could not sync with Google Sheets. Check script deployment URL.");
   };
 
   document.body.appendChild(script);
 }
 
-window.handleSheetsData = function(response) {
-  const badge = document.getElementById("connectionStatusBadge");
+function normalizeRss(val) {
+  const v = String(val === undefined || val === null ? "" : val).trim().toLowerCase();
+  return (v === "yes" || v === "true" || v === "1") ? "Yes" : "No";
+}
+
+function applySheetsData(response, badge) {
   const details = document.getElementById("connectionDetailsText");
 
   if (response && response.status === "SUCCESS") {
@@ -199,8 +238,8 @@ window.handleSheetsData = function(response) {
 
     if (response.donors && response.donors.length > 0) {
       appState.donors = response.donors.map(d => {
-        const tot = parseInt(d["Total Donations"]) || 1;
-        const bld = parseInt(d["Blood Donations Count"]) || tot;
+        const tot = parseInt(d["Total Donations"]) || 0;
+        const bld = parseInt(d["Blood Donations Count"]) || tot || 1;
         const plt = parseInt(d["Platelets Donations Count"]) || 0;
         const plsm = parseInt(d["Plasma Donations Count"]) || 0;
 
@@ -217,10 +256,13 @@ window.handleSheetsData = function(response) {
           pincode: String(d["Pincode"] || d.pincode || ""),
           officeArea: String(d["Office Address / Locality"] || d.officeArea || "Not Available"),
           profession: String(d["Profession"] || d.profession || "Not Available"),
-          totalDonations: bld + plt + plsm || tot,
+          totalDonations: bld + plt + plsm || 1,
           bloodDonations: bld,
           plateletsDonations: plt,
           plasmaDonations: plsm,
+          rssMember: normalizeRss(d["RSS Member"] ?? d["RSS MEMBER"] ?? d["RSS"] ?? d["RSS Member (Yes/No)"] ?? d.rssMember),
+          eligibilityStatus: String(d["Eligibility Status"] || d.eligibilityStatus || "Eligible"),
+          nextEligibilityDate: String(d["Next Eligibility Date"] || d.nextEligibilityDate || "Eligible Now"),
           lastDonationDate: String(d["Last Donation Date"] || d.lastDonationDate || "Not Available"),
           lastComponent: String(d["Last Component"] || d.lastComponent || "Blood")
         };
@@ -248,13 +290,14 @@ window.handleSheetsData = function(response) {
         attendantPhone: cleanWaValue(r["14# Attendant Phone No"] || r.attendantPhone || ""),
         familyMemberDonation: cleanWaValue(r["15# Family Member Donation"] || r.familyMemberDonation || ""),
         donationTimings: cleanWaValue(r["16# Blood Donation Timings"] || r.donationTimings || ""),
-        driveFolderUrl: String(r["Google Drive Folder URL"] || r.driveFolderUrl || "")
+        driveFolderUrl: String(r["Google Drive Folder URL"] || r.driveFolderUrl || ""),
+        familySlipUrl: String(r["Family Donation Slip Drive URL"] || r.familySlipUrl || "")
       }));
     }
 
-    if (response.completedRequirements) {
-      appState.completedRequirements = response.completedRequirements.map(c => ({
-        reqId: String(c["Patient Requirement ID"] || c.reqId || ""),
+    if (response.completedRequirements && response.completedRequirements.length > 0) {
+      const sheetReqs = response.completedRequirements.map(c => ({
+        reqId: String(c["Patient Requirement ID"] || c["reqId"] || c["Requirement ID"] || c["REQ ID"] || "REQ-HIST"),
         postedDate: String(c["Requirement Posted Timestamp"] || c.postedDate || ""),
         status: "Completed",
         requiredComponent: cleanWaValue(c["1# Required (Blood or platelets)"] || c.requiredComponent || "Blood"),
@@ -274,12 +317,26 @@ window.handleSheetsData = function(response) {
         familyMemberDonation: cleanWaValue(c["15# Family Member Donation"] || c.familyMemberDonation || ""),
         donationTimings: cleanWaValue(c["16# Blood Donation Timings"] || c.donationTimings || ""),
         driveFolderUrl: String(c["Google Drive Folder URL"] || c.driveFolderUrl || ""),
+        familySlipUrl: String(c["Family Donation Slip Drive URL"] || c.familySlipUrl || ""),
         completedDate: String(c["Completed Date"] || c.completedDate || ""),
         donorId: String(c["Donor ID"] || c.donorId || ""),
         donorName: String(c["Donor Name"] || c.donorName || ""),
         donorPhone: cleanPhone(c["Donor Phone No"] || c.donorPhone || ""),
         componentDonated: String(c["Component Donated"] || c.componentDonated || "Blood")
       }));
+
+      const reqMap = new Map();
+      sheetReqs.forEach(r => reqMap.set(r.reqId, r));
+      if (typeof INITIAL_COMPLETED_REQUIREMENTS !== "undefined") {
+        INITIAL_COMPLETED_REQUIREMENTS.forEach(r => {
+          if (!reqMap.has(r.reqId)) {
+            reqMap.set(r.reqId, r);
+          }
+        });
+      }
+      appState.completedRequirements = Array.from(reqMap.values());
+    } else if ((!appState.completedRequirements || appState.completedRequirements.length === 0) && typeof INITIAL_COMPLETED_REQUIREMENTS !== "undefined") {
+      appState.completedRequirements = INITIAL_COMPLETED_REQUIREMENTS;
     }
 
     if (badge) {
@@ -287,29 +344,39 @@ window.handleSheetsData = function(response) {
       badge.textContent = "Synced with Google Sheets ✓";
     }
     if (details) {
-      details.textContent = `Connected live to Google Sheets (${response.spreadsheetName || 'Active'}). Loaded ${appState.donors.length} donors & ${appState.completedRequirements.length} completed requests!`;
+      details.textContent = `Connected live to Google Sheets (${response.spreadsheetName || 'Active'}). Loaded ${appState.donors.length} donors!`;
     }
 
     renderAllViews();
-    showToast(`Synced Live Google Sheets! Loaded ${appState.donors.length} Donors, ${appState.activeRequirements.length} Active, ${appState.completedRequirements.length} Completed.`);
   }
-};
+}
 
-function getEligibilityInfo(lastDonationDateStr) {
-  if (!lastDonationDateStr || lastDonationDateStr === "Not Available") {
-    return { isEligible: true, daysElapsed: 999, daysRemaining: 0 };
+function getEligibilityInfo(donor) {
+  if (!donor) return { isEligible: true, statusText: "Eligible Now", nextDateStr: "Eligible Now" };
+
+  if (donor.eligibilityStatus === "Ineligible" && donor.nextEligibilityDate && donor.nextEligibilityDate !== "Eligible Now") {
+    return { isEligible: false, statusText: "Ineligible", nextDateStr: donor.nextEligibilityDate };
   }
+
+  const lastDonationDateStr = donor.lastDonationDate;
+  if (!lastDonationDateStr || lastDonationDateStr === "Not Available") {
+    return { isEligible: true, statusText: "Eligible Now", nextDateStr: "Eligible Now" };
+  }
+
   const lastDate = new Date(lastDonationDateStr);
   if (isNaN(lastDate.getTime())) {
-    return { isEligible: true, daysElapsed: 999, daysRemaining: 0 };
+    return { isEligible: true, statusText: "Eligible Now", nextDateStr: "Eligible Now" };
   }
+
   const diffTime = CURRENT_APP_DATE.getTime() - lastDate.getTime();
   const daysElapsed = Math.floor(diffTime / (1000 * 3600 * 24));
+
   if (daysElapsed >= ELIGIBILITY_DAYS) {
-    return { isEligible: true, daysElapsed: daysElapsed, daysRemaining: 0 };
+    return { isEligible: true, statusText: "Eligible Now", nextDateStr: "Eligible Now" };
   } else {
-    const daysRemaining = ELIGIBILITY_DAYS - daysElapsed;
-    return { isEligible: false, daysElapsed: daysElapsed, daysRemaining: daysRemaining };
+    const nextDate = new Date(lastDate.getTime() + (ELIGIBILITY_DAYS * 24 * 60 * 60 * 1000));
+    const nextDateStr = nextDate.toISOString().split("T")[0];
+    return { isEligible: false, statusText: "Ineligible", nextDateStr: nextDateStr };
   }
 }
 
@@ -327,6 +394,8 @@ function setupEventListeners() {
       appState.currentUser = null;
       appState.userRole = null;
       appState.isAdmin = false;
+      document.getElementById("donorLoginForm").reset();
+      document.getElementById("adminLoginForm").reset();
       showToast("Logged out successfully");
       applyRolePermissions();
       checkAuthenticationGuard();
@@ -398,25 +467,21 @@ function setupEventListeners() {
     });
   });
 
-  // Donor Login Form Submit
   document.getElementById("donorLoginForm").addEventListener("submit", (e) => {
     e.preventDefault();
     handleDonorLogin();
   });
 
-  // Admin Login Form Submit
   document.getElementById("adminLoginForm").addEventListener("submit", (e) => {
     e.preventDefault();
     handleAdminLogin();
   });
 
-  // Registration Form Submit
   document.getElementById("registerForm").addEventListener("submit", (e) => {
     e.preventDefault();
     handleRegistration();
   });
 
-  // My Profile Form Submit
   const profileForm = document.getElementById("myProfileForm");
   if (profileForm) {
     profileForm.addEventListener("submit", (e) => {
@@ -443,18 +508,20 @@ function setupEventListeners() {
 
   document.getElementById("searchInput").addEventListener("input", () => renderDonorsTable());
   document.getElementById("filterBloodGroup").addEventListener("change", () => renderDonorsTable());
-  document.getElementById("filterComponent").addEventListener("change", () => renderDonorsTable());
+  const donorSortOrderSelect = document.getElementById("donorSortOrder");
+  if (donorSortOrderSelect) donorSortOrderSelect.addEventListener("change", () => renderDonorsTable());
+  document.getElementById("filterRss").addEventListener("change", () => renderDonorsTable());
   document.getElementById("filterEligibility").addEventListener("change", () => renderDonorsTable());
 
   document.getElementById("resetFiltersBtn").addEventListener("click", () => {
     document.getElementById("searchInput").value = "";
     document.getElementById("filterBloodGroup").value = "ALL";
-    document.getElementById("filterComponent").value = "ALL";
+    if (document.getElementById("donorSortOrder")) document.getElementById("donorSortOrder").value = "MOST_DONATIONS_DESC";
+    document.getElementById("filterRss").value = "ALL";
     document.getElementById("filterEligibility").value = "ALL";
     renderDonorsTable();
   });
 
-  // Completed Requests Filters
   document.getElementById("compSearchPatient").addEventListener("input", () => renderCompletedRequirementsTable());
   document.getElementById("compFilterDonorId").addEventListener("input", () => renderCompletedRequirementsTable());
   const compDonorNameInput = document.getElementById("compFilterDonorName");
@@ -472,7 +539,6 @@ function setupEventListeners() {
     renderCompletedRequirementsTable();
   });
 
-  // Webhook Buttons
   const saveWebBtn = document.getElementById("saveWebhookBtn");
   if (saveWebBtn) {
     saveWebBtn.addEventListener("click", () => {
@@ -488,30 +554,33 @@ function setupEventListeners() {
     testConnBtn.addEventListener("click", () => fetchLiveDataFromGoogleSheets(true));
   }
 
-  const syncFromSheetsBtn = document.getElementById("syncFromSheetsBtn");
-  if (syncFromSheetsBtn) {
-    syncFromSheetsBtn.addEventListener("click", () => {
+  const manualRefreshBtn = document.getElementById("manualRefreshBtn");
+  if (manualRefreshBtn) {
+    manualRefreshBtn.addEventListener("click", () => {
+      showToast("Refreshing data from Google Sheets...");
       fetchLiveDataFromGoogleSheets(true);
     });
+  }
+
+  const syncFromSheetsBtn = document.getElementById("syncFromSheetsBtn");
+  if (syncFromSheetsBtn) {
+    syncFromSheetsBtn.addEventListener("click", () => fetchLiveDataFromGoogleSheets(true));
   }
 
   const copyBtn = document.getElementById("copyScriptBtn");
   if (copyBtn) {
     copyBtn.addEventListener("click", () => {
       const scriptText = document.getElementById("scriptCodeBlock").innerText;
-      navigator.clipboard.writeText(scriptText).then(() => {
-        showToast("Google Apps Script code copied to clipboard!");
-      });
+      navigator.clipboard.writeText(scriptText).then(() => showToast("Google Apps Script code copied!"));
     });
   }
 
-  // Copy & Share Congratulate Message Buttons (ADMIN ONLY)
   const copyCongratulateBtn = document.getElementById("copyCongratulateBtn");
   if (copyCongratulateBtn) {
     copyCongratulateBtn.addEventListener("click", () => {
       if (!appState.isAdmin) return;
       const txt = document.getElementById("congratulateTextarea").value;
-      navigator.clipboard.writeText(txt).then(() => showToast("Hindi Congratulatory message copied to clipboard!"));
+      navigator.clipboard.writeText(txt).then(() => showToast("Hindi Congratulatory message copied!"));
     });
   }
 
@@ -558,7 +627,7 @@ function handleDonorLogin() {
   const dobInput = document.getElementById("loginDob").value.trim();
 
   const donor = appState.donors.find(d => {
-    const nameMatch = d.name.toLowerCase() === nameInput || d.name.toLowerCase().includes(nameInput);
+    const nameMatch = d.name.trim().toLowerCase() === nameInput;
     const dobMatch = (d.dob && d.dob.includes(dobInput)) || (d.phone && d.phone.includes(dobInput));
     return nameMatch && dobMatch;
   });
@@ -568,10 +637,11 @@ function handleDonorLogin() {
     appState.userRole = "DONOR";
     applyRolePermissions();
     unlockAndCloseAuthModal();
+    document.getElementById("donorLoginForm").reset();
     showToast(`Welcome back, Donor ${donor.name} (${donor.id})!`);
     fetchLiveDataFromGoogleSheets(true);
   } else {
-    showToast("No matching donor found. Check Name/DOB or Register!");
+    showToast("No matching donor found. Check Full Name & DOB!");
   }
 }
 
@@ -599,6 +669,7 @@ function handleMyProfileSave() {
     appState.donors[dIdx].name = document.getElementById("myProfileName").value.trim();
     appState.donors[dIdx].phone = document.getElementById("myProfilePhone").value.trim();
     appState.donors[dIdx].dob = document.getElementById("myProfileDob").value.trim() || "Not Available";
+    appState.donors[dIdx].rssMember = document.getElementById("myProfileRssMember").value;
     appState.donors[dIdx].homeArea = document.getElementById("myProfileHomeArea").value.trim();
     appState.donors[dIdx].pincode = document.getElementById("myProfilePincode").value.trim();
     appState.donors[dIdx].email = document.getElementById("myProfileEmail").value.trim() || "Not Available";
@@ -609,9 +680,15 @@ function handleMyProfileSave() {
     appState.currentUser = appState.donors[dIdx];
     updateUserHeader();
     renderDonorsTable();
+    showToast("Saving your profile to Google Sheets...");
 
-    syncToGoogleWebhook({ action: "REGISTER_DONOR", ...appState.donors[dIdx] });
-    showToast("Your profile details updated successfully!");
+    syncToGoogleWebhook({ action: "REGISTER_DONOR", ...appState.donors[dIdx] }).then(result => {
+      if (result && result.status === "SUCCESS") {
+        showToast("Your profile details saved & synced to Google Sheets!");
+      } else {
+        showToast("Could not sync your profile to Google Sheets. Please check your connection and try again.");
+      }
+    });
   }
 }
 
@@ -624,6 +701,7 @@ function renderMyProfileTab() {
   document.getElementById("myProfilePhone").value = d.phone;
   document.getElementById("myProfileBloodGroup").value = d.bloodGroup;
   document.getElementById("myProfileDob").value = d.dob;
+  document.getElementById("myProfileRssMember").value = d.rssMember || "No";
   document.getElementById("myProfileHomeArea").value = d.homeArea;
   document.getElementById("myProfilePincode").value = d.pincode;
   document.getElementById("myProfileEmail").value = d.email === "Not Available" ? "" : d.email;
@@ -637,6 +715,10 @@ function handleRegistration() {
   const phone = document.getElementById("regPhone").value.trim();
   const bloodGroup = document.getElementById("regBloodGroup").value;
   const dob = document.getElementById("regDob").value;
+  const rssMember = document.getElementById("regRssMember").value;
+  const bloodCount = parseInt(document.getElementById("regBloodCount").value) || 0;
+  const plasmaCount = parseInt(document.getElementById("regPlasmaCount").value) || 0;
+  const plateletsCount = parseInt(document.getElementById("regPlateletsCount").value) || 0;
   const email = document.getElementById("regEmail").value.trim() || "Not Available";
   const instagram = document.getElementById("regInstagram").value.trim() || "Not Available";
   const homeArea = document.getElementById("regHomeArea").value.trim();
@@ -644,21 +726,23 @@ function handleRegistration() {
   const officeArea = document.getElementById("regOfficeArea").value.trim() || "Not Available";
   const profession = document.getElementById("regProfession").value.trim() || "Not Available";
 
-  const nextIdNum = appState.donors.length + 1;
-  const donorId = `DNR-${String(nextIdNum).padStart(3, '0')}`;
-
   let age = "Not Available";
   if (dob) {
     const bDate = new Date(dob);
     age = CURRENT_APP_DATE.getFullYear() - bDate.getFullYear();
   }
 
+  const totCount = bloodCount + plasmaCount + plateletsCount;
+
+  // Show a temporary placeholder locally; the REAL, unique Donor ID is generated by the
+  // Google Sheet itself (server-side) and linked back here once the sync confirms it.
   const newDonor = {
-    id: donorId, name: name, phone: phone, bloodGroup: bloodGroup,
+    id: "DNR-PENDING", name: name, phone: phone, bloodGroup: bloodGroup,
     dob: dob || "Not Available", age: age, email: email, instagram: instagram,
     homeArea: homeArea, pincode: pincode, officeArea: officeArea, profession: profession,
-    totalDonations: 1, bloodDonations: 1, plateletsDonations: 0, plasmaDonations: 0,
-    lastDonationDate: CURRENT_APP_DATE.toISOString().split("T")[0], lastComponent: "Blood"
+    totalDonations: totCount, bloodDonations: bloodCount, plateletsDonations: plateletsCount, plasmaDonations: plasmaCount,
+    rssMember: rssMember, eligibilityStatus: "Eligible", nextEligibilityDate: "Eligible Now",
+    lastDonationDate: totCount > 0 ? CURRENT_APP_DATE.toISOString().split("T")[0] : "Not Available", lastComponent: "Blood"
   };
 
   appState.donors.unshift(newDonor);
@@ -667,10 +751,23 @@ function handleRegistration() {
   applyRolePermissions();
   renderAllViews();
   unlockAndCloseAuthModal();
+  showToast("Registering & generating your Donor ID in Google Sheets...");
 
-  syncToGoogleWebhook({ action: "REGISTER_DONOR", ...newDonor });
-  showToast(`Registration Complete! Assigned Donor ID: ${donorId}`);
-  fetchLiveDataFromGoogleSheets(true);
+  syncToGoogleWebhook({ action: "REGISTER_DONOR", ...newDonor, id: "" }).then(result => {
+    if (result && result.status === "SUCCESS" && result.donorId) {
+      newDonor.id = result.donorId;
+      if (appState.currentUser && appState.currentUser.id === "DNR-PENDING") {
+        appState.currentUser = newDonor;
+      }
+      updateUserHeader();
+      renderMyProfileTab();
+      renderDonorsTable();
+      showToast(`Registration Complete! Your unique Donor ID is ${result.donorId}`);
+    } else {
+      showToast("Registered on this device, but syncing to Google Sheets failed. Please check your internet connection and try 'Sync from Sheets'.");
+    }
+    fetchLiveDataFromGoogleSheets(true);
+  });
 }
 
 function handleWhatsAppParse() {
@@ -730,31 +827,60 @@ function handleWhatsAppParse() {
   };
 
   const fileInput = document.getElementById("waFile");
+  const familySlipInput = document.getElementById("waFamilySlipFile");
+
+  let photoBase64 = null, photoMimeType = null;
+  let familySlipBase64 = null, familySlipMimeType = null;
+
+  const readPromises = [];
+
   if (fileInput && fileInput.files && fileInput.files[0]) {
-    const file = fileInput.files[0];
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      const photoBase64 = e.target.result.split(',')[1];
-      sendWaReq(newReq, photoBase64, file.type);
-    };
-    reader.readAsDataURL(file);
-  } else {
-    sendWaReq(newReq, null, null);
+    readPromises.push(new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        photoBase64 = e.target.result.split(',')[1];
+        photoMimeType = fileInput.files[0].type;
+        resolve();
+      };
+      reader.readAsDataURL(fileInput.files[0]);
+    }));
+  }
+
+  if (familySlipInput && familySlipInput.files && familySlipInput.files[0]) {
+    readPromises.push(new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        familySlipBase64 = e.target.result.split(',')[1];
+        familySlipMimeType = familySlipInput.files[0].type;
+        resolve();
+      };
+      reader.readAsDataURL(familySlipInput.files[0]);
+    }));
   }
 
   appState.activeRequirements.unshift(newReq);
   renderRequirements();
   closeAllModals();
+  showToast(`Parsed WhatsApp Message! Syncing Active Patient Request ${reqId} to Google Sheets...`);
 
-  showToast(`Parsed WhatsApp Message! Active Patient Request ${reqId} created.`);
-}
-
-function sendWaReq(reqObj, photoBase64, photoMimeType) {
-  syncToGoogleWebhook({
-    action: "POST_ACTIVE_REQUEST",
-    ...reqObj,
-    photoBase64: photoBase64,
-    photoMimeType: photoMimeType
+  Promise.all(readPromises).then(() => {
+    return syncToGoogleWebhook({
+      action: "POST_ACTIVE_REQUEST",
+      ...newReq,
+      photoBase64: photoBase64,
+      photoMimeType: photoMimeType,
+      familySlipBase64: familySlipBase64,
+      familySlipMimeType: familySlipMimeType
+    });
+  }).then(result => {
+    if (result && result.status === "SUCCESS") {
+      if (result.driveFolderUrl) newReq.driveFolderUrl = result.driveFolderUrl;
+      if (result.familySlipUrl) newReq.familySlipUrl = result.familySlipUrl;
+      showToast(`Request ${reqId} synced to Google Sheets & Drive!`);
+    } else {
+      showToast(`Request ${reqId} created locally, but syncing to Google Sheets failed. Please retry.`);
+    }
+    renderRequirements();
   });
 }
 
@@ -778,9 +904,33 @@ function handleManualReqSubmit() {
   appState.activeRequirements.unshift(newReq);
   renderRequirements();
   closeAllModals();
+  showToast(`Patient Requirement ${reqId} created. Syncing to Google Sheets...`);
 
-  syncToGoogleWebhook({ action: "POST_ACTIVE_REQUEST", ...newReq });
-  showToast(`Patient Requirement ${reqId} created.`);
+  function finishReqSync(result) {
+    if (result && result.status === "SUCCESS") {
+      if (result.driveFolderUrl) newReq.driveFolderUrl = result.driveFolderUrl;
+      if (result.familySlipUrl) newReq.familySlipUrl = result.familySlipUrl;
+      showToast(`Request ${reqId} synced to Google Sheets & Drive!`);
+    } else {
+      showToast(`Request ${reqId} created locally, but syncing to Google Sheets failed. Please retry.`);
+    }
+    renderRequirements();
+  }
+
+  const familySlipInput = document.getElementById("manualFamilySlipFile");
+  let familySlipBase64 = null, familySlipMimeType = null;
+
+  if (familySlipInput && familySlipInput.files && familySlipInput.files[0]) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      familySlipBase64 = e.target.result.split(',')[1];
+      familySlipMimeType = familySlipInput.files[0].type;
+      syncToGoogleWebhook({ action: "POST_ACTIVE_REQUEST", ...newReq, familySlipBase64, familySlipMimeType }).then(finishReqSync);
+    };
+    reader.readAsDataURL(familySlipInput.files[0]);
+  } else {
+    syncToGoogleWebhook({ action: "POST_ACTIVE_REQUEST", ...newReq }).then(finishReqSync);
+  }
 }
 
 function updateLogDonationCount() {
@@ -789,18 +939,17 @@ function updateLogDonationCount() {
   let prevCount = 0;
 
   if (donor) {
-    if (comp === "Platelets") {
-      prevCount = donor.plateletsDonations || 0;
-    } else if (comp === "Plasma") {
-      prevCount = donor.plasmaDonations || 0;
-    } else {
-      prevCount = donor.bloodDonations || 1;
-    }
+    if (comp === "Platelets") prevCount = donor.plateletsDonations || 0;
+    else if (comp === "Plasma") prevCount = donor.plasmaDonations || 0;
+    else prevCount = donor.bloodDonations || 1;
   }
 
   const logCountInput = document.getElementById("logCount");
-  if (logCountInput) {
-    logCountInput.value = prevCount + 1;
+  const logCountLabel = document.getElementById("logCountLabel");
+
+  if (logCountInput) logCountInput.value = prevCount + 1;
+  if (logCountLabel) {
+    logCountLabel.textContent = `Total Donation Count of ${comp} till date (including today's donation) *`;
   }
 }
 
@@ -835,7 +984,6 @@ function openLogDonationModal() {
 
   document.getElementById("logDate").value = CURRENT_APP_DATE.toISOString().split("T")[0];
   updateLogDonationCount();
-
   openModal("logDonationModal");
 }
 
@@ -852,17 +1000,20 @@ function handleLogDonation() {
 
   const donor = appState.currentUser || { id: "DNR-GUEST", name: "Guest Volunteer", phone: "Not Available" };
 
+  // 90-Day Next Eligibility Date Calculation
+  const donDate = new Date(logDate);
+  const nextEligDate = new Date(donDate.getTime() + (ELIGIBILITY_DAYS * 24 * 60 * 60 * 1000));
+  const nextEligStr = nextEligDate.toISOString().split("T")[0];
+
   if (appState.currentUser) {
     appState.currentUser.lastDonationDate = logDate;
     appState.currentUser.lastComponent = component;
+    appState.currentUser.eligibilityStatus = "Ineligible";
+    appState.currentUser.nextEligibilityDate = nextEligStr;
 
-    if (component === "Platelets") {
-      appState.currentUser.plateletsDonations = userCount;
-    } else if (component === "Plasma") {
-      appState.currentUser.plasmaDonations = userCount;
-    } else {
-      appState.currentUser.bloodDonations = userCount;
-    }
+    if (component === "Platelets") appState.currentUser.plateletsDonations = userCount;
+    else if (component === "Plasma") appState.currentUser.plasmaDonations = userCount;
+    else appState.currentUser.bloodDonations = userCount;
 
     appState.currentUser.totalDonations = (appState.currentUser.bloodDonations || 1) + (appState.currentUser.plateletsDonations || 0) + (appState.currentUser.plasmaDonations || 0);
 
@@ -873,47 +1024,59 @@ function handleLogDonation() {
   }
 
   const reqIdx = appState.activeRequirements.findIndex(r => r.reqId === reqId);
-  let completedItem = null;
+  let activeReq = reqIdx !== -1 ? appState.activeRequirements.splice(reqIdx, 1)[0] : null;
 
-  if (reqIdx !== -1) {
-    const activeReq = appState.activeRequirements.splice(reqIdx, 1)[0];
-    completedItem = {
-      reqId: activeReq.reqId,
-      postedDate: activeReq.postedDate,
-      status: "Completed",
-      completedDate: logDate,
-      requiredComponent: cleanWaValue(activeReq.requiredComponent),
-      bloodGroup: cleanWaValue(activeReq.bloodGroup),
-      replacementAllowed: cleanWaValue(activeReq.replacementAllowed),
-      noOfUnits: cleanWaValue(activeReq.noOfUnits),
-      hospitalName: cleanWaValue(activeReq.hospitalName),
-      hospitalArea: cleanWaValue(activeReq.hospitalArea),
-      patientName: cleanWaValue(activeReq.patientName),
-      uhidNo: cleanWaValue(activeReq.uhidNo),
-      patientHomeLocation: cleanWaValue(activeReq.patientHomeLocation),
-      patientAge: cleanWaValue(activeReq.patientAge),
-      patientGender: cleanWaValue(activeReq.patientGender),
-      problemDisease: cleanWaValue(activeReq.problemDisease),
-      attendantName: cleanWaValue(activeReq.attendantName),
-      attendantPhone: cleanWaValue(activeReq.attendantPhone),
-      familyMemberDonation: cleanWaValue(activeReq.familyMemberDonation),
-      donationTimings: cleanWaValue(activeReq.donationTimings),
-      driveFolderUrl: activeReq.driveFolderUrl || "",
-      donorId: donor.id,
-      donorName: donor.name,
-      donorPhone: donor.phone,
-      componentDonated: component,
-      unitsDonated: units,
-      venue: venue,
-      feelingAfterDonation: feeling,
-      userDonationCount: userCount,
-      volunteerFeedback: feedback
-    };
-    appState.completedRequirements.unshift(completedItem);
-  }
+  const generatedReqId = activeReq ? activeReq.reqId : `REQ-DON-${Date.now()}`;
+
+  const completedItem = {
+    reqId: generatedReqId,
+    postedDate: activeReq ? activeReq.postedDate : logDate,
+    status: "Completed",
+    completedDate: logDate,
+    requiredComponent: activeReq ? cleanWaValue(activeReq.requiredComponent) : component,
+    bloodGroup: activeReq ? cleanWaValue(activeReq.bloodGroup) : (donor.bloodGroup || "O+"),
+    replacementAllowed: activeReq ? cleanWaValue(activeReq.replacementAllowed) : "Allowed",
+    noOfUnits: activeReq ? cleanWaValue(activeReq.noOfUnits) : `${units} Unit`,
+    hospitalName: activeReq ? cleanWaValue(activeReq.hospitalName) : venue,
+    hospitalArea: activeReq ? cleanWaValue(activeReq.hospitalArea) : "Delhi NCR",
+    patientName: activeReq ? cleanWaValue(activeReq.patientName) : "Direct Donation Patient",
+    uhidNo: activeReq ? cleanWaValue(activeReq.uhidNo) : "N/A",
+    patientHomeLocation: activeReq ? cleanWaValue(activeReq.patientHomeLocation) : "Delhi NCR",
+    patientAge: activeReq ? cleanWaValue(activeReq.patientAge) : "N/A",
+    patientGender: activeReq ? cleanWaValue(activeReq.patientGender) : "N/A",
+    problemDisease: activeReq ? cleanWaValue(activeReq.problemDisease) : "General Blood Need",
+    attendantName: activeReq ? cleanWaValue(activeReq.attendantName) : "Self / Volunteer",
+    attendantPhone: activeReq ? cleanWaValue(activeReq.attendantPhone) : donor.phone,
+    familyMemberDonation: activeReq ? cleanWaValue(activeReq.familyMemberDonation) : "N/A",
+    donationTimings: activeReq ? cleanWaValue(activeReq.donationTimings) : "10:00 AM to 5:00 PM",
+    driveFolderUrl: activeReq ? (activeReq.driveFolderUrl || "") : "",
+    familySlipUrl: activeReq ? (activeReq.familySlipUrl || "") : "",
+    donorId: donor.id,
+    donorName: donor.name,
+    donorPhone: donor.phone,
+    componentDonated: component,
+    unitsDonated: units,
+    venue: venue,
+    feelingAfterDonation: feeling,
+    userDonationCount: userCount,
+    volunteerFeedback: feedback
+  };
+
+  appState.completedRequirements.unshift(completedItem);
 
   renderAllViews();
   closeAllModals();
+
+  showToast(`Donation logged! Status set to Ineligible until ${nextEligStr}. Syncing to Google Sheets...`);
+
+  function finishSync(result) {
+    if (result && result.status === "SUCCESS") {
+      showToast(`Donation & eligibility update synced to Google Sheets!`);
+    } else {
+      showToast(`Donation logged locally, but syncing to Google Sheets failed. Please check your connection.`);
+    }
+    fetchLiveDataFromGoogleSheets(true);
+  }
 
   if (completedItem) {
     if (selfieFileInput && selfieFileInput.files && selfieFileInput.files[0]) {
@@ -926,15 +1089,13 @@ function handleLogDonation() {
           ...completedItem,
           donorPhotoBase64: donorPhotoBase64,
           donorPhotoMimeType: file.type
-        });
+        }).then(finishSync);
       };
       reader.readAsDataURL(file);
     } else {
-      syncToGoogleWebhook({ action: "MARK_COMPLETED_REQUEST", ...completedItem });
+      syncToGoogleWebhook({ action: "MARK_COMPLETED_REQUEST", ...completedItem }).then(finishSync);
     }
   }
-
-  showToast(`Donation logged! ${component} Count updated to ${userCount}!`);
 }
 
 function handleEditDonorSave() {
@@ -947,11 +1108,16 @@ function handleEditDonorSave() {
     appState.donors[dIdx].name = document.getElementById("editName").value.trim();
     appState.donors[dIdx].phone = document.getElementById("editPhone").value.trim();
     appState.donors[dIdx].bloodGroup = document.getElementById("editBloodGroup").value;
+    appState.donors[dIdx].rssMember = document.getElementById("editRssMember").value;
     appState.donors[dIdx].dob = document.getElementById("editDob").value.trim() || "Not Available";
     appState.donors[dIdx].homeArea = document.getElementById("editHomeArea").value.trim();
     appState.donors[dIdx].pincode = document.getElementById("editPincode").value.trim();
     appState.donors[dIdx].officeArea = document.getElementById("editOfficeArea").value.trim() || "Not Available";
     appState.donors[dIdx].profession = document.getElementById("editProfession").value.trim() || "Not Available";
+    
+    // Admin Override Controls
+    appState.donors[dIdx].eligibilityStatus = document.getElementById("editEligibilityStatus").value;
+    appState.donors[dIdx].nextEligibilityDate = document.getElementById("editNextEligibilityDate").value || "Eligible Now";
 
     if (appState.currentUser && appState.currentUser.id === donorId) {
       appState.currentUser = appState.donors[dIdx];
@@ -960,7 +1126,14 @@ function handleEditDonorSave() {
 
     renderDonorsTable();
     closeAllModals();
-    showToast(`Donor ${donorId} profile updated!`);
+    showToast(`Saving Donor ${donorId} to Google Sheets...`);
+    syncToGoogleWebhook({ action: "REGISTER_DONOR", ...appState.donors[dIdx] }).then(result => {
+      if (result && result.status === "SUCCESS") {
+        showToast(`Donor ${donorId} profile updated & synced to Sheet!`);
+      } else {
+        showToast(`Donor ${donorId} updated locally, but the sync to Google Sheets failed. Please retry.`);
+      }
+    });
   }
 }
 
@@ -973,7 +1146,15 @@ function deleteDonor(donorId) {
     appState.donors = appState.donors.filter(d => d.id !== donorId);
     renderDonorsTable();
     document.getElementById("totalDonorsCount").textContent = appState.donors.length;
-    showToast(`Donor ${donorId} deleted.`);
+    showToast(`Donor ${donorId} deleted. Syncing to Google Sheets...`);
+
+    syncToGoogleWebhook({ action: "DELETE_DONOR", donorId: donorId }).then(result => {
+      if (result && result.status === "SUCCESS") {
+        showToast(`Donor ${donorId} removed from Google Sheets too.`);
+      } else {
+        showToast(`Donor ${donorId} deleted locally, but removing from Google Sheets failed. Please retry.`);
+      }
+    });
   }
 }
 
@@ -987,11 +1168,16 @@ function openEditDonorModal(donorId) {
   document.getElementById("editName").value = donor.name;
   document.getElementById("editPhone").value = donor.phone;
   document.getElementById("editBloodGroup").value = donor.bloodGroup;
+  document.getElementById("editRssMember").value = donor.rssMember || "No";
   document.getElementById("editDob").value = donor.dob;
   document.getElementById("editHomeArea").value = donor.homeArea;
   document.getElementById("editPincode").value = donor.pincode;
   document.getElementById("editOfficeArea").value = donor.officeArea === "Not Available" ? "" : donor.officeArea;
   document.getElementById("editProfession").value = donor.profession === "Not Available" ? "" : donor.profession;
+
+  const eligInfo = getEligibilityInfo(donor);
+  document.getElementById("editEligibilityStatus").value = donor.eligibilityStatus || (eligInfo.isEligible ? "Eligible" : "Ineligible");
+  document.getElementById("editNextEligibilityDate").value = donor.nextEligibilityDate !== "Eligible Now" ? donor.nextEligibilityDate : "";
 
   openModal("editDonorModal");
 }
@@ -1007,7 +1193,7 @@ function openCongratulateModal(reqId) {
 
   const donor = appState.donors.find(d => d.id === req.donorId) || {
     name: req.donorName, homeArea: "Delhi NCR", profession: "निष्ठावान नागरिक",
-    bloodDonations: 1, plateletsDonations: 0, plasmaDonations: 0
+    bloodDonations: 1, plateletsDonations: 0, plasmaDonations: 0, rssMember: "No"
   };
 
   const donorName = donor.name;
@@ -1021,10 +1207,11 @@ function openCongratulateModal(reqId) {
   const attendantName = cleanWaValue(req.attendantName) || "परिजन";
   const attendantPhone = cleanWaValue(req.attendantPhone) || "संपर्क";
 
-  const hindiMsg = `${donorName} जी आप ${homeArea} में रहते हैं और आप एक ${profession} के नाते कार्यरत हैं। 
-आप संघ/RSS के स्वयंसेवक हैं।
+  // CONDITIONAL RSS LINE: Included ONLY if donor is RSS Member (Yes)
+  const isRssMember = (donor.rssMember === "Yes" || donor.rssMember === "yes");
+  const rssLineText = isRssMember ? "\nआप संघ/RSS के स्वयंसेवक हैं।\n" : "\n";
 
-आवश्यकता का पता लगने पर तुरंत ही रक्तदान के लिए तैयार हो गए। ऑफिस में आग्रह करके, कार्य से समय निकाला और इस नेक कार्य के लिए अपना योगदान दिया। ईश्वर सदा आप पर अपनी कृपा बनाए रखे।
+  const hindiMsg = `${donorName} जी आप ${homeArea} में रहते हैं और आप एक ${profession} के नाते कार्यरत हैं।${rssLineText}आवश्यकता का पता लगने पर तुरंत ही रक्तदान के लिए तैयार हो गए। ऑफिस में आग्रह करके, कार्य से समय निकाला और इस नेक कार्य के लिए अपना योगदान दिया। ईश्वर सदा आप पर अपनी कृपा बनाए रखे।
 
 डोनेशन काउंट
 ब्लड        -  ➡️ ${bldCnt}
@@ -1093,9 +1280,8 @@ function renderTodayBirthdaySection() {
   sec.style.display = "block";
   container.innerHTML = "";
 
-  const todayStr = "07-19"; // July 19
+  const todayStr = "07-19";
   const bdayDonors = appState.donors.filter(d => d.dob && d.dob.includes(todayStr));
-
   const listToRender = bdayDonors.length > 0 ? bdayDonors : appState.donors.slice(0, 3);
 
   listToRender.forEach(d => {
@@ -1123,7 +1309,7 @@ function renderLeaderboard() {
     .slice(0, 10);
 
   if (sortedDonors.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: #94A3B8; padding: 20px;">No donor statistics available.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #94A3B8; padding: 20px;">No donor statistics available.</td></tr>`;
     return;
   }
 
@@ -1137,8 +1323,7 @@ function renderLeaderboard() {
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>${rankBadge}</td>
-      <td><strong>${donor.id}</strong></td>
-      <td>${donor.name}</td>
+      <td><strong>${donor.name}</strong><div class="sub-line">${donor.id}</div></td>
       <td><span class="bg-pill">${donor.bloodGroup}</span></td>
       <td>${donor.homeArea}</td>
       <td>${donor.phone}</td>
@@ -1182,7 +1367,6 @@ function renderCompletedRequirementsTable() {
     } else if (sortOrder === "DONOR_NAME_ASC") {
       return (a.donorName || "").localeCompare(b.donorName || "");
     } else {
-      // Default: LATEST_TO_OLDEST
       const dateA = parseJsDate(a.completedDate || a.postedDate);
       const dateB = parseJsDate(b.completedDate || b.postedDate);
       return dateB - dateA;
@@ -1193,7 +1377,7 @@ function renderCompletedRequirementsTable() {
     countBadge.textContent = `Showing ${filtered.length} of ${appState.completedRequirements.length} entries found`;
   }
 
-  const colCount = appState.isAdmin ? 11 : 10;
+  const colCount = appState.isAdmin ? 7 : 6;
 
   if (filtered.length === 0) {
     tbody.innerHTML = `<tr><td colspan="${colCount}" style="text-align: center; color: #94A3B8; padding: 24px;">No matching completed requests found.</td></tr>`;
@@ -1205,13 +1389,15 @@ function renderCompletedRequirementsTable() {
     tr.innerHTML = `
       <td><strong>${req.reqId}</strong></td>
       <td>${req.completedDate || req.postedDate || 'N/A'}</td>
-      <td><strong>${cleanWaValue(req.patientName)}</strong></td>
-      <td><span class="bg-pill">${cleanWaValue(req.bloodGroup)}</span></td>
-      <td>${cleanWaValue(req.hospitalName)}</td>
-      <td>${cleanWaValue(req.componentDonated || req.requiredComponent)}</td>
-      <td>${cleanWaValue(req.noOfUnits)}</td>
+      <td>
+        <strong>${cleanWaValue(req.patientName)}</strong>
+        <div class="sub-line">${cleanWaValue(req.hospitalName)}${req.hospitalArea ? ', ' + cleanWaValue(req.hospitalArea) : ''}</div>
+      </td>
       <td><span class="badge badge-success">${req.donorId}</span></td>
-      <td>${req.donorName}</td>
+      <td>
+        ${req.donorName}
+        <div class="sub-line"><span class="bg-pill" style="font-size:0.68rem;">${cleanWaValue(req.bloodGroup)}</span> ${cleanWaValue(req.componentDonated || req.donatedComponent || "Blood")} · ${cleanWaValue(req.unitsDonated || req.donatedUnits || "1 Unit")}</div>
+      </td>
       <td>${req.donorPhone}</td>
       ${appState.isAdmin ? `<td><button class="btn btn-sm btn-crimson" onclick="openCongratulateModal('${req.reqId}')">💬 Congratulate</button></td>` : ''}
     `;
@@ -1246,8 +1432,7 @@ function updateUserHeader() {
 }
 
 function renderEligibilityCard() {
-  const lastDateStr = appState.currentUser ? appState.currentUser.lastDonationDate : null;
-  const elig = getEligibilityInfo(lastDateStr);
+  const elig = getEligibilityInfo(appState.currentUser);
 
   const globalBadge = document.getElementById("eligibilityGlobalBadge");
   const wbStatus = document.getElementById("wholeBloodStatus");
@@ -1262,10 +1447,10 @@ function renderEligibilityCard() {
     plsmStatus.innerHTML = `<span class="status-tag status-green">Eligible Now</span>`;
   } else {
     globalBadge.className = "badge badge-warning";
-    globalBadge.textContent = `Ineligible (${elig.daysRemaining} days left)`;
-    wbStatus.innerHTML = `<span class="status-tag status-orange">${elig.daysRemaining} Days Remaining</span>`;
+    globalBadge.textContent = `Ineligible (Until ${elig.nextDateStr})`;
+    wbStatus.innerHTML = `<span class="status-tag status-orange">Ineligible until ${elig.nextDateStr}</span>`;
     pltStatus.innerHTML = `<span class="status-tag status-green">Eligible (Platelets)</span>`;
-    plsmStatus.innerHTML = `<span class="status-tag status-orange">${elig.daysRemaining} Days Remaining</span>`;
+    plsmStatus.innerHTML = `<span class="status-tag status-orange">Ineligible until ${elig.nextDateStr}</span>`;
   }
 }
 
@@ -1301,7 +1486,7 @@ function renderRequirements() {
         <span class="bg-pill">${cleanWaValue(req.bloodGroup)}</span>
         <span class="urgency-tag ${req.urgency ? req.urgency.toLowerCase() : 'urgent'}">${req.urgency || 'URGENT'}</span>
       </div>
-      <h3 class="req-patient">${cleanPatient} ${ageGenderStr ? `(${ageGenderStr})` : ''}</h3>
+      <h3 class="req-patient">${req.reqId} ${cleanPatient} ${ageGenderStr ? `(${ageGenderStr})` : ''}</h3>
       <p class="req-hospital">🏥 ${cleanHospital} ${cleanArea ? `(${cleanArea})` : ''}</p>
 
       <div class="req-fields-grid">
@@ -1332,7 +1517,8 @@ function renderDonorsTable() {
 
   const query = document.getElementById("searchInput").value.trim().toLowerCase();
   const bgFilter = document.getElementById("filterBloodGroup").value;
-  const compFilter = document.getElementById("filterComponent").value;
+  const sortOrder = document.getElementById("donorSortOrder") ? document.getElementById("donorSortOrder").value : "MOST_DONATIONS_DESC";
+  const rssFilter = document.getElementById("filterRss").value;
   const eligFilter = document.getElementById("filterEligibility").value;
 
   const filtered = appState.donors.filter(donor => {
@@ -1340,41 +1526,91 @@ function renderDonorsTable() {
       donor.name.toLowerCase().includes(query) ||
       donor.phone.includes(query) ||
       donor.homeArea.toLowerCase().includes(query) ||
-      donor.pincode.includes(query);
+      donor.pincode.includes(query) ||
+      donor.id.toLowerCase().includes(query);
 
     const matchBg = bgFilter === "ALL" || donor.bloodGroup === bgFilter;
-    const matchComp = compFilter === "ALL" || (donor.lastComponent && donor.lastComponent.toLowerCase() === compFilter.toLowerCase());
-    const eligInfo = getEligibilityInfo(donor.lastDonationDate);
+    const donorRss = (donor.rssMember || "No").trim().toLowerCase();
+    const targetRss = (rssFilter || "ALL").trim().toLowerCase();
+    const matchRss = (targetRss === "all") ||
+      (targetRss === "yes" && (donorRss === "yes" || donorRss === "true")) ||
+      (targetRss === "no" && (donorRss === "no" || donorRss === "false" || !donorRss));
+
+    const eligInfo = getEligibilityInfo(donor);
     const matchElig = eligFilter === "ALL" || 
       (eligFilter === "ELIGIBLE" && eligInfo.isEligible) ||
       (eligFilter === "INELIGIBLE" && !eligInfo.isEligible);
 
-    return matchQuery && matchBg && matchComp && matchElig;
+    return matchQuery && matchBg && matchRss && matchElig;
+  });
+
+  filtered.sort((a, b) => {
+    if (sortOrder === "LEAST_DONATIONS_ASC") {
+      return (a.totalDonations || 0) - (b.totalDonations || 0);
+    } else if (sortOrder === "NAME_ASC") {
+      return (a.name || "").localeCompare(b.name || "");
+    } else if (sortOrder === "DONOR_ID_ASC") {
+      const numA = parseInt(String(a.id || "").replace(/\D/g, "")) || 0;
+      const numB = parseInt(String(b.id || "").replace(/\D/g, "")) || 0;
+      return numA - numB;
+    } else if (sortOrder === "LATEST_DONATION_DESC") {
+      const dateA = parseJsDate(a.lastDonationDate);
+      const dateB = parseJsDate(b.lastDonationDate);
+      return dateB - dateA;
+    } else {
+      // Default: MOST_DONATIONS_DESC
+      return (b.totalDonations || 0) - (a.totalDonations || 0);
+    }
+  });
+
+    filtered.sort((a, b) => {
+    if (sortOrder === "LEAST_DONATIONS_ASC") {
+      return (a.totalDonations || 0) - (b.totalDonations || 0);
+    } else if (sortOrder === "NAME_ASC") {
+      return (a.name || "").localeCompare(b.name || "");
+    } else if (sortOrder === "DONOR_ID_ASC") {
+      const numA = parseInt(String(a.id || "").replace(/\D/g, "")) || 0;
+      const numB = parseInt(String(b.id || "").replace(/\D/g, "")) || 0;
+      return numA - numB;
+    } else if (sortOrder === "LATEST_DONATION_DESC") {
+      const dateA = parseJsDate(a.lastDonationDate);
+      const dateB = parseJsDate(b.lastDonationDate);
+      return dateB - dateA;
+    } else {
+      return (b.totalDonations || 0) - (a.totalDonations || 0);
+    }
   });
 
   if (filtered.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="11" style="text-align: center; color: #94A3B8; padding: 24px;">No matching donors found.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: #94A3B8; padding: 24px;">No matching donors found.</td></tr>`;
     return;
   }
 
   filtered.forEach(donor => {
-    const elig = getEligibilityInfo(donor.lastDonationDate);
-    const eligBadgeHtml = elig.isEligible
-      ? `<span class="badge badge-success">Eligible</span>`
-      : `<span class="badge badge-warning" title="${elig.daysRemaining} days left">${elig.daysRemaining}d Left</span>`;
+    const elig = getEligibilityInfo(donor);
+
+    const rssText = (donor.rssMember === "Yes" || donor.rssMember === "yes")
+      ? `<span style="color:#F59E0B; font-weight:600;">RSS: Yes</span>`
+      : `RSS: No`;
 
     const tr = document.createElement("tr");
+    tr.className = elig.isEligible ? "row-eligible" : "row-ineligible";
     tr.innerHTML = `
       <td><strong>${donor.id}</strong></td>
-      <td>${donor.name}</td>
+      <td>
+        <strong>${donor.name}</strong>
+        <div class="sub-line">
+          <span style="color:#10B981; font-weight:600;">${donor.totalDonations || 1} donations</span> ·
+          ${rssText} ·
+          Age: ${donor.age} ·
+          Last: ${donor.lastDonationDate || 'Not Available'}
+        </div>
+      </td>
       <td><span class="bg-pill">${donor.bloodGroup}</span></td>
-      <td><strong style="color: #10B981; font-size: 1rem;">${donor.totalDonations || 1} Donations</strong></td>
       <td>${donor.homeArea}</td>
       <td>${donor.pincode}</td>
       <td>${donor.phone}</td>
-      <td>${donor.age}</td>
-      <td>${donor.lastDonationDate || 'Not Available'}</td>
-      <td>${eligBadgeHtml}</td>
+      <td><span style="color:${elig.isEligible ? '#10B981' : '#F59E0B'}; font-weight:600;">${elig.nextDateStr}</span></td>
       <td>
         ${appState.isAdmin ? `<button class="btn btn-sm btn-secondary" onclick="openEditDonorModal('${donor.id}')">Edit</button>` : ''}
         ${appState.isAdmin ? `<button class="btn btn-sm btn-crimson" style="margin-left:4px;" onclick="deleteDonor('${donor.id}')">Delete</button>` : ''}
@@ -1385,18 +1621,31 @@ function renderDonorsTable() {
 }
 
 function syncToGoogleWebhook(payload) {
-  if (!appState.webhookUrl) return;
+  // IMPORTANT: Do NOT use mode:"no-cors" and do NOT use Content-Type: application/json.
+  // Google Apps Script Web Apps do not handle CORS preflight (OPTIONS) requests, so a
+  // POST sent with an "application/json" header (which triggers a preflight) or in
+  // "no-cors" mode (which makes the response unreadable) silently fails or drops data
+  // without ever throwing an error - this was why edits/logs were not reaching the Sheet.
+  // Using "text/plain" avoids the preflight (Apps Script still JSON.parses the body fine),
+  // and keeping the default "cors" mode lets us read back the real success/failure + donorId.
+  if (!appState.webhookUrl) {
+    return Promise.resolve({ status: "ERROR", message: "No script URL configured" });
+  }
 
-  fetch(appState.webhookUrl, {
+  return fetch(appState.webhookUrl, {
     method: "POST",
-    mode: "no-cors",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
     body: JSON.stringify(payload)
-  }).then(() => {
-    console.log("Synced to Google Sheets/Drive Webhook");
-  }).catch(err => {
-    console.error("Webhook sync error:", err);
-  });
+  })
+    .then(res => res.json())
+    .then(data => {
+      console.log("Synced to Google Sheets/Drive Webhook:", data);
+      return data;
+    })
+    .catch(err => {
+      console.error("Webhook sync error:", err);
+      return { status: "ERROR", message: err.toString() };
+    });
 }
 
 function showToast(msg) {
@@ -1413,16 +1662,20 @@ function switchTab(tabId) {
 
 function openModal(modalId) {
   const modal = document.getElementById(modalId);
-  if (modal) modal.classList.add("active");
+  if (modal) {
+    modal.classList.add("active");
+    modal.style.display = "flex";
+  }
 }
 
 function closeAllModals() {
   document.querySelectorAll(".modal-overlay").forEach(m => {
     if (appState.currentUser || appState.userRole) {
-      m.classList.remove("strict-lock");
-      m.classList.remove("active");
+      m.classList.remove("strict-lock", "active");
+      m.style.display = "none";
     } else if (!m.classList.contains("strict-lock")) {
       m.classList.remove("active");
+      m.style.display = "none";
     }
   });
 }

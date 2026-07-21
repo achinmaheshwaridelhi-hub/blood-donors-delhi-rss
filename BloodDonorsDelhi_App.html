@@ -3,10 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Blood Donors Delhi | Volunteer Directory & Donation Portal</title>
+  <title>Blood Donors Delhi | Volunteer Group Directory & Active Requests</title>
+  <meta name="description" content="Official Blood Donors Delhi portal connecting emergency blood requirements with verified volunteer blood, plasma, and platelet donors across Delhi NCR.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
 /* ======================================================
    BLOOD DONORS DELHI - STYLESHEET
@@ -123,14 +124,49 @@ body {
   background-color: var(--primary-crimson);
 }
 
-/* Role Visibility Classes */
-.admin-only-item { display: none !important; }
-body.is-admin .admin-only-item { display: flex !important; }
-body.is-admin button.admin-only-item { display: inline-flex !important; }
+/* Role Visibility Classes (Strict Overrides for Admin & Donor Roles) */
+.admin-only-item {
+  display: none !important;
+}
 
-.donor-only-item { display: none !important; }
-body.is-donor .donor-only-item { display: flex !important; }
-body.is-donor button.donor-only-item { display: inline-flex !important; }
+body.is-admin button.admin-only-item {
+  display: inline-flex !important;
+}
+
+body.is-admin div.admin-only-item,
+body.is-admin section.admin-only-item:not(.tab-pane) {
+  display: block !important;
+}
+
+body.is-admin span.admin-only-item {
+  display: inline-block !important;
+}
+
+.donor-only-item {
+  display: none !important;
+}
+
+body.is-donor button.donor-only-item {
+  display: inline-flex !important;
+}
+
+body.is-donor div.donor-only-item,
+body.is-donor section.donor-only-item:not(.tab-pane) {
+  display: block !important;
+}
+
+body.is-donor span.donor-only-item {
+  display: inline-block !important;
+}
+
+/* Tab Pane Isolation: Only active tab pane is displayed */
+.tab-pane {
+  display: none !important;
+}
+
+.tab-pane.active {
+  display: block !important;
+}
 
 .user-control {
   display: flex;
@@ -629,40 +665,151 @@ body.is-donor button.donor-only-item { display: inline-flex !important; }
   font-weight: 700;
 }
 
-/* DATA TABLES - NO TABLE CUT OFF FIX */
+/* DATA TABLES - NO TABLE CUT OFF FIX & RED VISUAL SCROLLBAR */
 .table-container {
   background-color: var(--card-bg);
   border: 1px solid var(--card-border);
   border-radius: 12px;
-  overflow-x: auto;
-  width: 100%;
+  overflow-x: auto !important;
+  width: 100% !important;
+  max-width: 100% !important;
   -webkit-overflow-scrolling: touch;
+  margin-top: 16px;
+  scrollbar-width: auto;
+  scrollbar-color: var(--primary-crimson) #0F172A;
+}
+
+.table-container::-webkit-scrollbar {
+  height: 10px;
+}
+.table-container::-webkit-scrollbar-track {
+  background: #0F172A;
+  border-radius: 4px;
+}
+.table-container::-webkit-scrollbar-thumb {
+  background: #DC2626;
+  border-radius: 4px;
+}
+
+/* Visible hint so people know there's more to see + know they can scroll */
+.scroll-hint {
+  margin-top: 12px;
+  font-size: 0.78rem;
+  color: var(--status-orange);
+  background-color: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: 8px;
+  padding: 6px 12px;
+  display: inline-block;
+}
+
+/* Keep the ID column pinned & visible while scrolling right through wide tables */
+.sticky-col {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  background-color: var(--card-bg);
+  box-shadow: 2px 0 6px rgba(0, 0, 0, 0.35);
+}
+
+.data-table thead th.sticky-col {
+  background-color: #0B1120;
+  z-index: 3;
+}
+
+.data-table tbody tr:hover td.sticky-col {
+  background-color: #24334a;
+}
+
+/* Compact tables: fold secondary info into a sub-line under the primary cell so
+   the whole table fits on one screen without needing a forced min-width / scroll. */
+.data-table.compact-table {
+  min-width: 0 !important;
+  width: 100% !important;
+  table-layout: auto;
+}
+
+.compact-table th,
+.compact-table td {
+  white-space: normal;
+  padding: 10px 12px;
+  font-size: 0.82rem;
+  vertical-align: top;
+}
+
+.sub-line {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-top: 3px;
+  line-height: 1.4;
+  white-space: normal;
+}
+
+/* Row-level eligibility color coding (Donor Finder table) */
+.row-eligible td {
+  background-color: rgba(16, 185, 129, 0.07);
+}
+.row-ineligible td {
+  background-color: rgba(220, 38, 38, 0.09);
+}
+.row-eligible:hover td {
+  background-color: rgba(16, 185, 129, 0.14);
+}
+.row-ineligible:hover td {
+  background-color: rgba(220, 38, 38, 0.16);
+}
+
+.eligibility-legend {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  margin-top: 12px;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+.legend-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+.legend-green { background-color: var(--status-green); }
+.legend-red { background-color: var(--primary-crimson); }
+
+/* Leaderboard: extra compact so Top 10 fits in one frame without scrolling */
+.leaderboard-table th,
+.leaderboard-table td {
+  padding: 8px 10px;
+  font-size: 0.8rem;
 }
 
 .data-table {
-  width: 100%;
+  width: 100% !important;
+  min-width: 1450px !important;
   border-collapse: collapse;
   text-align: left;
+  table-layout: auto;
 }
 
 .data-table th {
-  background-color: #0F172A;
+  background-color: #0B1120;
   color: var(--text-muted);
-  font-size: 0.75rem;
+  font-size: 0.78rem;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  padding: 12px 10px;
+  padding: 12px 14px;
   border-bottom: 1px solid var(--card-border);
   white-space: nowrap;
 }
 
 .data-table td {
-  padding: 10px 12px;
+  padding: 12px 14px;
   border-bottom: 1px solid #334155;
-  font-size: 0.82rem;
-  white-space: normal;
-  word-break: break-word;
-  max-width: 200px;
+  font-size: 0.84rem;
+  white-space: nowrap;
 }
 
 .data-table tbody tr:hover {
@@ -1024,15 +1171,99 @@ body.is-donor button.donor-only-item { display: inline-flex !important; }
 
 </style>
 </head>
-<body>
+<body class="is-admin">
 
-  <!-- Top Navigation Bar -->
+  <!-- Autocomplete Datalist for Delhi Localities & Areas -->
+  <datalist id="delhiLocalities">
+    <option value="Karol Bagh, Delhi">
+    <option value="Rohini, Delhi">
+    <option value="Connaught Place, Delhi">
+    <option value="Lajpat Nagar, Delhi">
+    <option value="Janakpuri, Delhi">
+    <option value="Pitampura, Delhi">
+    <option value="Dwarka, Delhi">
+    <option value="Saket, Delhi">
+    <option value="Laxmi Nagar, Delhi">
+    <option value="Noida, UP">
+    <option value="Gurgaon, Haryana">
+    <option value="Faridabad, Haryana">
+    <option value="Ghaziabad, UP">
+    <option value="Model Town, Delhi">
+    <option value="Paschim Vihar, Delhi">
+    <option value="Shahdara, Delhi">
+    <option value="Vasant Kunj, Delhi">
+    <option value="South Extension, Delhi">
+    <option value="Civil Lines, Delhi">
+    <option value="Patel Nagar, Delhi">
+    <option value="Shalimar Bagh, Delhi">
+    <option value="Preet Vihar, Delhi">
+    <option value="Rajouri Garden, Delhi">
+    <option value="Mayur Vihar, Delhi">
+    <option value="Dilshad Garden, Delhi">
+    <option value="Kalkaji, Delhi">
+    <option value="Ashok Vihar, Delhi">
+    <option value="Kirti Nagar, Delhi">
+    <option value="Punjabi Bagh, Delhi">
+    <option value="Tilak Nagar, Delhi">
+    <option value="Vikaspuri, Delhi">
+    <option value="Uttam Nagar, Delhi">
+    <option value="Mehrauli, Delhi">
+    <option value="Greater Kailash, Delhi">
+    <option value="Green Park, Delhi">
+    <option value="Hauz Khas, Delhi">
+    <option value="Defence Colony, Delhi">
+    <option value="RK Puram, Delhi">
+    <option value="Munirka, Delhi">
+    <option value="Sarita Vihar, Delhi">
+    <option value="Okhla, Delhi">
+    <option value="Badarpur, Delhi">
+    <option value="Anand Vihar, Delhi">
+    <option value="Vivek Vihar, Delhi">
+    <option value="Geeta Colony, Delhi">
+    <option value="Krishna Nagar, Delhi">
+    <option value="Yamuna Vihar, Delhi">
+    <option value="Burari, Delhi">
+    <option value="Narela, Delhi">
+    <option value="Bawana, Delhi">
+    <option value="Najafgarh, Delhi">
+    <option value="Chattarpur, Delhi">
+    <option value="Sultanpur, Delhi">
+    <option value="Khanpur, Delhi">
+    <option value="Sangam Vihar, Delhi">
+    <option value="Devli, Delhi">
+    <option value="Alaknanda, Delhi">
+    <option value="Chittaranjan Park, Delhi">
+    <option value="Jamia Nagar, Delhi">
+    <option value="Jasola, Delhi">
+    <option value="Vasundhara, Ghaziabad">
+    <option value="Indirapuram, Ghaziabad">
+    <option value="Vaishali, Ghaziabad">
+    <option value="Kaushambi, Ghaziabad">
+    <option value="Crossings Republik, Ghaziabad">
+    <option value="Raj Nagar, Ghaziabad">
+    <option value="Noida Extension, UP">
+    <option value="Cyber City, Gurgaon">
+    <option value="Golf Course Road, Gurgaon">
+    <option value="Sohna Road, Gurgaon">
+    <option value="DLF Phase 1, Gurgaon">
+    <option value="DLF Phase 2, Gurgaon">
+    <option value="DLF Phase 3, Gurgaon">
+    <option value="DLF Phase 4, Gurgaon">
+    <option value="DLF Phase 5, Gurgaon">
+    <option value="Huda City Centre, Gurgaon">
+    <option value="Greater Noida, UP">
+    <option value="Sonipat, Haryana">
+    <option value="Jhajjar, Haryana">
+    <option value="Bahadurgarh, Haryana">
+  </datalist>
+
+  <!-- Top Sticky Navigation Bar -->
   <header class="navbar">
     <div class="nav-container">
       <div class="brand">
         <div class="brand-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#DC2626" stroke="#DC2626"/>
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#DC2626"/>
           </svg>
         </div>
         <div class="brand-text">
@@ -1054,60 +1285,55 @@ body.is-donor button.donor-only-item { display: inline-flex !important; }
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
           Completed Requests
         </button>
-        
-        <!-- Donor-only Tab -->
         <button class="nav-btn donor-only-item" data-tab="my-profile">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
           My Profile
         </button>
-
-        <!-- Admin-only Tabs -->
-        <button class="nav-btn admin-only-item" data-tab="admin-finder">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+        <button class="nav-btn admin-only-item" data-tab="donor-finder">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
           Donor Finder (Admin)
         </button>
         <button class="nav-btn admin-only-item" data-tab="google-setup">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 11H5m14 0a2 2 0 0 12 2v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-6a2 2 0 0 12-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 0 12-2m0 0V5a2 2 0 0 12-2h6a2 2 0 0 12 2v2M7 7h10"></path></svg>
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
           Google Setup
         </button>
       </nav>
 
       <div class="user-control">
+        <button id="manualRefreshBtn" class="btn btn-secondary btn-sm" title="Refresh data from Google Sheets">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"></path><path d="M1 20v-6h6"></path><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+          Refresh
+        </button>
         <div id="userBadge" class="user-status-pill guest">
           <span class="dot"></span>
           <span id="userStatusText">Unauthenticated</span>
         </div>
-        <button id="authBtn" class="btn btn-primary btn-sm">Login / Register</button>
+        <button id="authBtn" class="btn btn-crimson btn-sm">Login / Register</button>
       </div>
     </div>
   </header>
 
-  <!-- Main Container -->
+  <!-- Main View Container -->
   <main class="main-content">
-
+    
     <!-- Tab 1: Dashboard View -->
     <section id="tab-dashboard" class="tab-pane active">
       
-      <!-- Welcome Hero Card -->
+      <!-- Hero Header Card -->
       <div class="hero-card">
         <div class="hero-text">
           <h1 id="welcomeHeading">Welcome, Blood Donation Volunteer! 👋</h1>
-          <p id="welcomeSubtext">Log your post-donation details, check eligibility, or search for available life-saving blood donors across Delhi NCR.</p>
-          <div class="hero-actions">
-            <button id="heroLogBtn" class="btn btn-crimson btn-lg">
-              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"></path></svg>
-              Log Post-Donation Details
-            </button>
-            <button id="heroRegisterBtn" class="btn btn-outline-light btn-lg">
-              Register New Donor
-            </button>
-          </div>
+          <p id="welcomeSubtext">Manage emergency requirements and connect verified blood donors across Delhi NCR.</p>
         </div>
 
         <div class="hero-stats-row">
           <div class="hero-stat-badge">
             <span class="stat-number" id="totalDonorsCount">0</span>
             <span class="stat-label">Active Master Donors</span>
+          </div>
+          <div class="hero-stat-badge" style="border-left: 3px solid #10B981;">
+            <span class="stat-number" id="totalEligibleDonorsCount" style="color: #10B981;">0</span>
+            <span class="stat-label">Total Eligible Donors</span>
           </div>
           <div class="hero-stat-badge highlight-stat">
             <span class="stat-number" id="totalExecutedDonationsCount">0</span>
@@ -1116,25 +1342,26 @@ body.is-donor button.donor-only-item { display: inline-flex !important; }
         </div>
       </div>
 
-      <!-- TODAY'S BIRTHDAY DONORS HERO CARD (ADMIN ONLY) -->
-      <div id="todayBirthdaySection" class="section-card admin-only-item" style="border: 2px solid #F59E0B; background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(220, 38, 38, 0.05) 100%);">
+      <!-- Birthday Donors Banner (ADMIN ONLY) -->
+      <div id="todayBirthdaySection" class="section-card admin-only-item" style="border: 1px solid #F59E0B; background: rgba(245, 158, 11, 0.05);">
         <div class="card-header">
           <div class="header-title">
-            <span style="font-size: 1.5rem;">🎂</span>
-            <h2>Today's Birthday Hero Donors! 🎉 (Admin Only)</h2>
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#F59E0B" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            <h2>🎂 Birthday Hero Donors Today (Admin Only)</h2>
           </div>
           <span class="badge badge-warning">Birthday Celebrations</span>
         </div>
-        <div id="birthdayDonorsList" style="display: flex; gap: 16px; flex-wrap: wrap; margin-top: 12px;">
-          <!-- Dynamically populated for Admin -->
+        <p class="sub-text">Congratulate our verified hero donors on their birthday with official WhatsApp wish messages!</p>
+        <div id="birthdayDonorsList" style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 12px;">
+          <!-- Populated dynamically -->
         </div>
       </div>
 
-      <!-- Eligibility Section -->
-      <div class="section-card eligibility-card">
+      <!-- Eligibility Matrix -->
+      <div class="section-card">
         <div class="card-header">
           <div class="header-title">
-            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#DC2626" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#DC2626" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
             <h2>Your Donation Eligibility Status</h2>
           </div>
           <span id="eligibilityGlobalBadge" class="badge badge-success">Eligible to Donate</span>
@@ -1144,64 +1371,75 @@ body.is-donor button.donor-only-item { display: inline-flex !important; }
           <div class="eligibility-item">
             <div class="item-info">
               <span class="dot red-dot"></span>
-              <span class="item-name">Whole Blood</span>
+              <span>Whole Blood</span>
             </div>
-            <div class="item-status" id="wholeBloodStatus">
+            <div id="wholeBloodStatus" class="item-status">
               <span class="status-tag status-green">Eligible Now</span>
             </div>
           </div>
-
           <div class="eligibility-item">
             <div class="item-info">
               <span class="dot yellow-dot"></span>
-              <span class="item-name">Platelets (SDP)</span>
+              <span>Platelets (SDP)</span>
             </div>
-            <div class="item-status" id="plateletsStatus">
+            <div id="plateletsStatus" class="item-status">
               <span class="status-tag status-green">Eligible Now</span>
             </div>
           </div>
-
           <div class="eligibility-item">
             <div class="item-info">
               <span class="dot purple-dot"></span>
-              <span class="item-name">Plasma</span>
+              <span>Plasma</span>
             </div>
-            <div class="item-status" id="plasmaStatus">
+            <div id="plasmaStatus" class="item-status">
               <span class="status-tag status-green">Eligible Now</span>
             </div>
           </div>
         </div>
-        <p class="eligibility-note">
-          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-          <strong>3-Month Rule:</strong> Donors can donate whole blood once every 90 days (3 months) to ensure donor safety and recovery.
-        </p>
+        <p class="eligibility-note">ℹ️ Whole Blood interval: 90 days (3 months) | Platelets (SDP): 15 days interval | Plasma: 30 days interval</p>
       </div>
 
-      <!-- TOP 10 HERO DONORS LEADERBOARD -->
+      <!-- Monthly Donations Visual Graph -->
+      <div class="section-card">
+        <div class="card-header">
+          <div class="header-title">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#DC2626" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+            <h2>Monthly Executed Donations Overview</h2>
+          </div>
+          <span class="badge badge-crimson" id="totalChartDonationsBadge">0 Total Donations</span>
+        </div>
+        <p class="sub-text">Visual breakdown of blood, SDP, and plasma donations completed across months.</p>
+        
+        <div id="monthlyDonationsChartContainer" style="margin-top: 20px; padding: 16px; background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(226, 232, 240, 0.08); border-radius: 12px;">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+
+      <!-- Leaderboard: Top 10 Hero Donors -->
       <div class="leaderboard-section">
         <div class="card-header">
           <div class="header-title">
-            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#F59E0B" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
-            <h2>🏆 Top 10 Hero Donors (Highest Donations)</h2>
+            <span style="font-size: 1.4rem;">🏆</span>
+            <h2>Top 10 Hero Blood Donors Leaderboard</h2>
           </div>
-          <span class="badge badge-warning">Volunteer Champions</span>
+          <span class="badge badge-success">Master Champions</span>
         </div>
-
+        <p class="sub-text">Honoring our top volunteer donors who have saved lives through repeated blood, SDP, and plasma donations.</p>
+        
         <div class="table-container">
-          <table class="leaderboard-table">
+          <table class="data-table compact-table leaderboard-table">
             <thead>
               <tr>
-                <th>Rank</th>
-                <th>Donor ID</th>
-                <th>Donor Name</th>
-                <th>Blood Group</th>
-                <th>Locality</th>
-                <th>Mobile Number</th>
-                <th>Total Donations</th>
+                <th>RANK</th>
+                <th>DONOR</th>
+                <th>BLOOD GROUP</th>
+                <th>LOCALITY / AREA</th>
+                <th>PHONE NUMBER</th>
+                <th>TOTAL DONATIONS</th>
               </tr>
             </thead>
             <tbody id="top10LeaderboardTable">
-              <!-- Rendered dynamically -->
+              <!-- Populated dynamically -->
             </tbody>
           </table>
         </div>
@@ -1211,27 +1449,27 @@ body.is-donor button.donor-only-item { display: inline-flex !important; }
       <div class="dashboard-grid">
         <div class="info-card">
           <div class="card-icon red-icon">
-            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
           </div>
-          <h3>Log Post-Donation</h3>
-          <p>Donated blood recently for a group requirement? Submit venue, component, and photo selfie details.</p>
-          <button class="btn btn-link open-log-modal-btn">Log Donation &rarr;</button>
+          <h3>Active Emergency Requests</h3>
+          <p>View emergency patient blood and component requirements across AIIMS, Safdarjung, Max, Fortis, and Apollo hospitals.</p>
+          <button class="btn btn-primary switch-tab-btn" data-target="open-requests">Browse Requirements &rarr;</button>
         </div>
 
         <div class="info-card admin-only-item">
           <div class="card-icon blue-icon">
-            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
           </div>
-          <h3>Admin Donor Search</h3>
-          <p>Find eligible donors instantly filtered by locality, pincode, blood group, and 90-day eligibility rule.</p>
-          <button class="btn btn-link switch-tab-btn" data-target="admin-finder">Search Donors &rarr;</button>
+          <h3>Donor Finder (Admin)</h3>
+          <p>Search 125 master donors by Blood Group, Locality, RSS Member status, Pincode, and 90-Day Eligibility.</p>
+          <button class="btn btn-primary switch-tab-btn" data-target="donor-finder">Open Donor Finder &rarr;</button>
         </div>
 
         <div class="info-card">
           <div class="card-icon green-icon">
             <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
           </div>
-          <h3>Completed Requests</h3>
+          <h3>Completed Requests Directory</h3>
           <p>View historical fulfilled blood requests and donor attributions across Delhi NCR.</p>
           <button class="btn btn-link switch-tab-btn" data-target="completed-requests">View Archive &rarr;</button>
         </div>
@@ -1262,7 +1500,7 @@ body.is-donor button.donor-only-item { display: inline-flex !important; }
       <div class="pane-header">
         <div>
           <h2>Completed Blood Requests Directory (Latest to Oldest)</h2>
-          <p>Filter fulfilled requirements by Donor ID, Patient ID, or Patient Name.</p>
+          <p>Filter fulfilled requirements by Donor ID, Patient ID, Patient Name, or Donor Name.</p>
         </div>
       </div>
 
@@ -1306,72 +1544,120 @@ body.is-donor button.donor-only-item { display: inline-flex !important; }
 
       <!-- Tabular Completed Requests Data Table -->
       <div class="table-container">
-        <table class="data-table">
+        <table class="data-table compact-table">
           <thead>
             <tr>
-              <th>Req ID</th>
-              <th>Date</th>
-              <th>Patient Name</th>
-              <th>Blood Group</th>
-              <th>Hospital / Area</th>
-              <th>Component</th>
-              <th>Units</th>
-              <th>Hero Donor ID</th>
-              <th>Donor Name</th>
-              <th>Donor Phone</th>
-              <th class="admin-only-item">Actions</th>
+              <th>REQ ID</th>
+              <th>DATE</th>
+              <th>PATIENT</th>
+              <th>HERO DONOR ID</th>
+              <th>DONOR</th>
+              <th>DONOR PHONE</th>
+              <th class="admin-only-item">ACTIONS</th>
             </tr>
           </thead>
           <tbody id="completedRequestsTableBody">
-            <!-- Rendered dynamically sorted latest to oldest -->
+            <!-- Populated dynamically -->
           </tbody>
         </table>
       </div>
     </section>
 
     <!-- Tab 4: My Profile View (DONOR ONLY) -->
-    <section id="tab-my-profile" class="tab-pane">
+    <section id="tab-my-profile" class="tab-pane donor-only-item">
       <div class="pane-header">
         <div>
-          <h2>My Volunteer Profile & Contact Info</h2>
-          <p>Update your constant personal details (Home Address, Pincode, Email, Instagram, Office, Profession).</p>
+          <h2>My Donor Profile & Preferences</h2>
+          <p>Update your personal information, address locality, and contact details.</p>
         </div>
       </div>
 
       <div class="profile-card">
         <form id="myProfileForm">
           <div class="form-grid">
-            <div class="form-group"><label>Donor ID</label><input type="text" id="myProfileId" readonly style="opacity: 0.7;"></div>
-            <div class="form-group"><label>Full Name *</label><input type="text" id="myProfileName" required></div>
-            <div class="form-group"><label>Mobile Number (WhatsApp) *</label><input type="tel" id="myProfilePhone" required placeholder="10-digit WhatsApp number"></div>
-            <div class="form-group"><label>Blood Group *</label><input type="text" id="myProfileBloodGroup" readonly style="opacity: 0.7;"></div>
-            <div class="form-group"><label>Date of Birth</label><input type="text" id="myProfileDob"></div>
-            <div class="form-group"><label>Home Address / Locality *</label><input type="text" id="myProfileHomeArea" required></div>
-            <div class="form-group"><label>Pincode *</label><input type="text" id="myProfilePincode" required></div>
-            <div class="form-group"><label>Email Address</label><input type="email" id="myProfileEmail"></div>
-            <div class="form-group"><label>Instagram Handle ID</label><input type="text" id="myProfileInstagram"></div>
-            <div class="form-group"><label>Office Locality</label><input type="text" id="myProfileOfficeArea"></div>
-            <div class="form-group"><label>Profession</label><input type="text" id="myProfileProfession"></div>
+            <div class="form-group">
+              <label>Donor ID (Read Only)</label>
+              <input type="text" id="myProfileId" readonly disabled style="opacity: 0.7;">
+            </div>
+
+            <div class="form-group">
+              <label>Full Name *</label>
+              <input type="text" id="myProfileName" required>
+            </div>
+
+            <div class="form-group">
+              <label>Mobile Number (WhatsApp) *</label>
+              <input type="tel" id="myProfilePhone" required pattern="[0-9]{10}" maxlength="10" title="Enter 10-digit mobile number">
+            </div>
+
+            <div class="form-group">
+              <label>Blood Group *</label>
+              <input type="text" id="myProfileBloodGroup" readonly disabled style="opacity: 0.7;">
+            </div>
+
+            <div class="form-group">
+              <label>Date of Birth</label>
+              <input type="text" id="myProfileDob" placeholder="YYYY-MM-DD">
+            </div>
+
+            <div class="form-group">
+              <label>RSS Member</label>
+              <select id="myProfileRssMember">
+                <option value="No">No</option>
+                <option value="Yes">Yes</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Home Locality / Area *</label>
+              <input type="text" id="myProfileHomeArea" required list="delhiLocalities" placeholder="e.g. Karol Bagh, Delhi">
+            </div>
+
+            <div class="form-group">
+              <label>Pincode *</label>
+              <input type="text" id="myProfilePincode" required pattern="[0-9]{6}" maxlength="6" title="Enter 6-digit pincode">
+            </div>
+
+            <div class="form-group">
+              <label>Email Address</label>
+              <input type="email" id="myProfileEmail" placeholder="email@example.com">
+            </div>
+
+            <div class="form-group">
+              <label>Instagram Handle ID</label>
+              <input type="text" id="myProfileInstagram" placeholder="@handle">
+            </div>
+
+            <div class="form-group">
+              <label>Office Locality / Area</label>
+              <input type="text" id="myProfileOfficeArea" list="delhiLocalities" placeholder="e.g. Connaught Place, Delhi">
+            </div>
+
+            <div class="form-group">
+              <label>Profession / Occupation</label>
+              <input type="text" id="myProfileProfession" placeholder="e.g. Business / Engineer">
+            </div>
           </div>
-          <button type="submit" class="btn btn-crimson" style="margin-top: 16px;">Save Profile Changes</button>
+
+          <button type="submit" class="btn btn-crimson btn-block" style="margin-top: 16px;">Save Profile Changes & Sync to Sheet</button>
         </form>
       </div>
     </section>
 
-    <!-- Tab 5: Admin Donor Finder View (ADMIN ONLY) -->
-    <section id="tab-admin-finder" class="tab-pane">
+    <!-- Tab 5: Donor Finder Directory (ADMIN ONLY) -->
+    <section id="tab-donor-finder" class="tab-pane admin-only-item">
       <div class="pane-header">
         <div>
-          <h2>Admin Donor Master Directory</h2>
-          <p>Search, filter, edit, wish birthdays, and manage all volunteer donors across Delhi locations.</p>
+          <h2>Master Donor Finder Directory (Admin View)</h2>
+          <p>Filter master donors by blood group, component, RSS Member status, or 90-day eligibility.</p>
         </div>
       </div>
 
-      <!-- Multi-Criteria Search & Filter Controls -->
+      <!-- Filter Panel -->
       <div class="filter-panel">
         <div class="search-input-group">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-          <input type="text" id="searchInput" placeholder="Search by donor name, phone, locality, or pincode...">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#94A3B8" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <input type="text" id="searchInput" placeholder="Search by Donor Name, Phone, Locality, Pincode, or ID...">
         </div>
 
         <div class="filter-selects">
@@ -1379,33 +1665,39 @@ body.is-donor button.donor-only-item { display: inline-flex !important; }
             <label>Blood Group</label>
             <select id="filterBloodGroup">
               <option value="ALL">All Blood Groups</option>
-              <option value="A+">A+</option>
-              <option value="A-">A-</option>
-              <option value="B+">B+</option>
-              <option value="B-">B-</option>
-              <option value="O+">O+</option>
-              <option value="O-">O-</option>
-              <option value="AB+">AB+</option>
-              <option value="AB-">AB-</option>
+              <option value="A+">A+</option><option value="A-">A-</option>
+              <option value="B+">B+</option><option value="B-">B-</option>
+              <option value="O+">O+</option><option value="O-">O-</option>
+              <option value="AB+">AB+</option><option value="AB-">AB-</option>
             </select>
           </div>
 
           <div class="select-wrapper">
-            <label>Component Donated</label>
-            <select id="filterComponent">
-              <option value="ALL">All Components</option>
-              <option value="Blood">Whole Blood</option>
-              <option value="Platelets">Platelets (SDP)</option>
-              <option value="Plasma">Plasma</option>
+            <label>Sort Order</label>
+            <select id="donorSortOrder">
+              <option value="MOST_DONATIONS_DESC">Most Donations (Default)</option>
+              <option value="LEAST_DONATIONS_ASC">Least Donations</option>
+              <option value="NAME_ASC">Donor Name (A-Z)</option>
+              <option value="DONOR_ID_ASC">Donor ID (DNR-001 First)</option>
+              <option value="LATEST_DONATION_DESC">Latest Donation Date</option>
             </select>
           </div>
 
           <div class="select-wrapper">
-            <label>Eligibility (3-Month Rule)</label>
-            <select id="filterEligibility">
+            <label>RSS Member</label>
+            <select id="filterRss">
               <option value="ALL">All Donors</option>
-              <option value="ELIGIBLE">Eligible Only (>= 90 Days)</option>
-              <option value="INELIGIBLE">Ineligible (< 90 Days)</option>
+              <option value="Yes">RSS Members Only (Yes)</option>
+              <option value="No">Non-RSS Members (No)</option>
+            </select>
+          </div>
+
+          <div class="select-wrapper">
+            <label>Eligibility Status</label>
+            <select id="filterEligibility">
+              <option value="ALL">All Statuses</option>
+              <option value="ELIGIBLE">Eligible Now</option>
+              <option value="INELIGIBLE">Ineligible</option>
             </select>
           </div>
 
@@ -1413,45 +1705,42 @@ body.is-donor button.donor-only-item { display: inline-flex !important; }
         </div>
       </div>
 
-      <!-- Donors Table -->
+      <!-- Data Table Container -->
+      <div class="eligibility-legend">
+        <span><span class="legend-dot legend-green"></span> Green row = Eligible now</span>
+        <span><span class="legend-dot legend-red"></span> Red row = Ineligible</span>
+      </div>
       <div class="table-container">
-        <table class="data-table">
+        <table class="data-table compact-table">
           <thead>
             <tr>
-              <th>Donor ID</th>
-              <th>Donor Name</th>
-              <th>Blood Group</th>
-              <th>Total Donations</th>
-              <th>Locality / Address</th>
-              <th>Pincode</th>
-              <th>Mobile Number</th>
-              <th>Age</th>
-              <th>Last Donation</th>
-              <th>Eligibility Status</th>
-              <th>Actions</th>
+              <th style="width: 90px;">DONOR ID</th>
+              <th style="max-width: 200px;">DONOR NAME</th>
+              <th style="width: 75px; text-align: center;">BLOOD GROUP</th>
+              <th style="max-width: 160px;">HOME LOCALITY & PINCODE</th>
+              <th style="width: 120px;">MOBILE NUMBER</th>
+              <th style="width: 130px;">NEXT ELIGIBILITY DATE</th>
+              <th style="width: 120px;">ACTIONS</th>
             </tr>
           </thead>
           <tbody id="donorsTableBody">
-            <!-- Rendered dynamically -->
+            <!-- Populated dynamically -->
           </tbody>
         </table>
       </div>
-
     </section>
 
-    <!-- Tab 6: Google Setup & Backend Code (ADMIN ONLY) -->
-    <section id="tab-google-setup" class="tab-pane">
+    <!-- Tab 6: Google Webhook Setup (ADMIN ONLY) -->
+    <section id="tab-google-setup" class="tab-pane admin-only-item">
       <div class="pane-header">
         <div>
-          <h2>Google Drive & Google Sheets Integration</h2>
-          <p>Link your web application directly to your Gmail account to systematically store patient & donor files in Google Drive and sync 3 Google Sheets tabs (<code>Donor master</code>, <code>Active Requests</code>, <code>Completed Requests</code>).</p>
+          <h2>Google Apps Script Live Integration Setup</h2>
+          <p>Connect this portal with your Google Sheets & Google Drive for real-time synchronization.</p>
         </div>
-        <div id="connectionStatusBadge" class="badge badge-warning">Checking Connection...</div>
+        <div id="connectionStatusBadge" class="badge badge-warning">Not Connected</div>
       </div>
 
       <div class="google-setup-card">
-        <h3>Google Apps Script Webhook Endpoint</h3>
-        
         <div class="webhook-config-box">
           <label><strong>Google Apps Script Webhook URL:</strong></label>
           <div class="input-with-button">
@@ -1495,15 +1784,15 @@ body.is-donor button.donor-only-item { display: inline-flex !important; }
         <h3>Volunteer Donor Login</h3>
         <p class="sub-text">Enter your <strong>Full Name</strong> and <strong>Date of Birth</strong> (or registered Mobile No) to log in.</p>
 
-        <form id="donorLoginForm">
+        <form id="donorLoginForm" autocomplete="off">
           <div class="form-group">
             <label>Full Name *</label>
-            <input type="text" id="loginName" placeholder="e.g. Deepak Sharma" required>
+            <input type="text" id="loginName" name="donorLoginName" placeholder="e.g. Deepak Sharma" autocomplete="off" required>
           </div>
 
           <div class="form-group">
             <label>Date of Birth or Mobile No *</label>
-            <input type="text" id="loginDob" placeholder="YYYY-MM-DD or 10-digit mobile number" required>
+            <input type="text" id="loginDob" name="donorLoginDob" placeholder="YYYY-MM-DD or 10-digit mobile number" autocomplete="off" required>
           </div>
 
           <button type="submit" class="btn btn-crimson btn-block">Find Account & Login as Donor</button>
@@ -1515,21 +1804,22 @@ body.is-donor button.donor-only-item { display: inline-flex !important; }
         <h3>Admin Portal Login</h3>
         <p class="sub-text">Enter Administrator credentials to manage master donor directory and requirements.</p>
 
-        <form id="adminLoginForm">
+        <form id="adminLoginForm" autocomplete="off">
           <div class="form-group">
             <label>Admin Username / Name *</label>
-            <input type="text" id="adminUser" placeholder="admin" required>
+            <input type="text" id="adminUser" name="adminLoginUser" placeholder="admin" autocomplete="off" required>
           </div>
 
           <div class="form-group">
             <label>Admin Password / Passcode *</label>
-            <input type="password" id="adminPass" placeholder="Enter admin passcode" required>
+            <input type="password" id="adminPass" name="adminLoginPass" placeholder="Enter admin passcode" autocomplete="new-password" required>
           </div>
 
           <button type="submit" class="btn btn-primary btn-block">Login as Administrator</button>
         </form>
       </div>
 
+      
       <!-- Registration Form -->
       <div id="registerFormPane" class="modal-pane">
         <h3>New Donor Registration</h3>
@@ -1538,7 +1828,7 @@ body.is-donor button.donor-only-item { display: inline-flex !important; }
         <form id="registerForm">
           <div class="form-grid">
             <div class="form-group"><label>Full Name *</label><input type="text" id="regName" required placeholder="e.g. Rajesh Sharma"></div>
-            <div class="form-group"><label>Mobile Number (WhatsApp) *</label><input type="tel" id="regPhone" required placeholder="10-digit WhatsApp number"></div>
+            <div class="form-group"><label>Mobile Number (WhatsApp) *</label><input type="tel" id="regPhone" required pattern="[0-9]{10}" maxlength="10" placeholder="10-digit WhatsApp number"></div>
             <div class="form-group">
               <label>Blood Group *</label>
               <select id="regBloodGroup" required>
@@ -1548,11 +1838,21 @@ body.is-donor button.donor-only-item { display: inline-flex !important; }
               </select>
             </div>
             <div class="form-group"><label>Date of Birth *</label><input type="date" id="regDob" required></div>
+            <div class="form-group">
+              <label>RSS Member *</label>
+              <select id="regRssMember" required>
+                <option value="No">No</option>
+                <option value="Yes">Yes</option>
+              </select>
+            </div>
+            <div class="form-group"><label>No. of Blood Donations done till date</label><input type="number" id="regBloodCount" min="0" value="1"></div>
+            <div class="form-group"><label>No. of Plasma Donations done till date</label><input type="number" id="regPlasmaCount" min="0" value="0"></div>
+            <div class="form-group"><label>No. of Platelets Donations done till date</label><input type="number" id="regPlateletsCount" min="0" value="0"></div>
             <div class="form-group"><label>Email Address</label><input type="email" id="regEmail" placeholder="email@example.com"></div>
             <div class="form-group"><label>Instagram Handle ID</label><input type="text" id="regInstagram" placeholder="@handle"></div>
-            <div class="form-group"><label>Home Locality / Address *</label><input type="text" id="regHomeArea" required placeholder="e.g. Karol Bagh, Delhi"></div>
-            <div class="form-group"><label>Pincode *</label><input type="text" id="regPincode" required placeholder="e.g. 110005"></div>
-            <div class="form-group"><label>Office Locality / Address</label><input type="text" id="regOfficeArea" placeholder="e.g. Connaught Place"></div>
+            <div class="form-group"><label>Home Locality / Area *</label><input type="text" id="regHomeArea" required list="delhiLocalities" placeholder="e.g. Karol Bagh, Delhi"></div>
+            <div class="form-group"><label>Pincode *</label><input type="text" id="regPincode" required pattern="[0-9]{6}" maxlength="6" placeholder="e.g. 110005"></div>
+            <div class="form-group"><label>Office Locality / Area</label><input type="text" id="regOfficeArea" list="delhiLocalities" placeholder="e.g. Connaught Place, Delhi"></div>
             <div class="form-group"><label>Profession / Occupation</label><input type="text" id="regProfession" placeholder="e.g. Business / Engineer"></div>
           </div>
 
@@ -1588,6 +1888,11 @@ body.is-donor button.donor-only-item { display: inline-flex !important; }
             <input type="file" id="waFile" accept="image/*,application/pdf">
           </div>
 
+          <div class="form-group">
+            <label>Upload Family Donation Slip</label>
+            <input type="file" id="waFamilySlipFile" accept="image/*,application/pdf">
+          </div>
+
           <button type="button" id="btnParseWa" class="btn btn-crimson btn-block">Parse Text & Create Active Requirement</button>
         </form>
       </div>
@@ -1618,6 +1923,11 @@ body.is-donor button.donor-only-item { display: inline-flex !important; }
           <div class="form-group">
             <label>Upload Hospital Recommendation Letter / Patient Photo</label>
             <input type="file" id="reqFile" accept="image/*,application/pdf">
+          </div>
+
+          <div class="form-group">
+            <label>Upload Family Donation Slip</label>
+            <input type="file" id="manualFamilySlipFile" accept="image/*,application/pdf">
           </div>
 
           <button type="submit" class="btn btn-crimson btn-block">Post Patient Requirement</button>
@@ -1652,7 +1962,7 @@ body.is-donor button.donor-only-item { display: inline-flex !important; }
               <option value="Plasma">Plasma</option>
             </select>
           </div>
-          <div class="form-group"><label>Units Donated *</label><input type="number" id="logUnits" min="1" max="10" value="1" required></div>
+          <div class="form-group"><label>Units Donated today *</label><input type="number" id="logUnits" min="1" max="10" value="1" required></div>
           <div class="form-group"><label>Hospital / Donation Venue *</label><input type="text" id="logVenue" placeholder="e.g. Kalawati Saran Children Hospital" required></div>
           
           <div class="form-group">
@@ -1666,7 +1976,7 @@ body.is-donor button.donor-only-item { display: inline-flex !important; }
             </select>
           </div>
           <div class="form-group">
-            <label>Total Donation Count (Auto / Editable) *</label>
+            <label id="logCountLabel">Total Donation Count of Whole Blood till date (including today's donation) *</label>
             <input type="number" id="logCount" min="1" required>
           </div>
         </div>
@@ -1698,7 +2008,7 @@ body.is-donor button.donor-only-item { display: inline-flex !important; }
 
         <div class="form-grid">
           <div class="form-group"><label>Full Name *</label><input type="text" id="editName" required></div>
-          <div class="form-group"><label>Mobile Number (WhatsApp) *</label><input type="tel" id="editPhone" required></div>
+          <div class="form-group"><label>Mobile Number (WhatsApp) *</label><input type="tel" id="editPhone" required pattern="[0-9]{10}" maxlength="10"></div>
           <div class="form-group">
             <label>Blood Group *</label>
             <select id="editBloodGroup" required>
@@ -1706,11 +2016,29 @@ body.is-donor button.donor-only-item { display: inline-flex !important; }
               <option value="O+">O+</option><option value="O-">O-</option><option value="AB+">AB+</option><option value="AB-">AB-</option>
             </select>
           </div>
+          <div class="form-group">
+            <label>RSS Member *</label>
+            <select id="editRssMember">
+              <option value="No">No</option>
+              <option value="Yes">Yes</option>
+            </select>
+          </div>
           <div class="form-group"><label>Date of Birth</label><input type="text" id="editDob" placeholder="YYYY-MM-DD"></div>
-          <div class="form-group"><label>Home Address / Locality *</label><input type="text" id="editHomeArea" required></div>
-          <div class="form-group"><label>Pincode *</label><input type="text" id="editPincode" required></div>
-          <div class="form-group"><label>Office Locality</label><input type="text" id="editOfficeArea"></div>
+          <div class="form-group"><label>Home Locality / Area *</label><input type="text" id="editHomeArea" required list="delhiLocalities"></div>
+          <div class="form-group"><label>Pincode *</label><input type="text" id="editPincode" required pattern="[0-9]{6}" maxlength="6"></div>
+          <div class="form-group"><label>Office Locality / Area</label><input type="text" id="editOfficeArea" list="delhiLocalities"></div>
           <div class="form-group"><label>Profession</label><input type="text" id="editProfession"></div>
+          <div class="form-group">
+            <label>Admin Override: Eligibility Status</label>
+            <select id="editEligibilityStatus">
+              <option value="Eligible">Eligible Now</option>
+              <option value="Ineligible">Ineligible</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Admin Override: Next Eligibility Date</label>
+            <input type="date" id="editNextEligibilityDate">
+          </div>
         </div>
 
         <button type="submit" class="btn btn-primary btn-block">Save Profile Changes</button>
@@ -2670,7 +2998,7 @@ const INITIAL_DONORS = [
     "name": "Ankush Sharma",
     "phone": "8447913631",
     "bloodGroup": "B+",
-    "dob": "1997-07-19",
+    "dob": "1997-07-20",
     "age": 29,
     "email": "ankush.220210@gmail.com",
     "instagram": "Not Available",
@@ -10325,27 +10653,11 @@ const INITIAL_COMPLETED_REQUIREMENTS = [
   }
 ];
 
-
-
-function parseJsDate(dateStr) {
-  if (!dateStr || dateStr === "Not Available" || dateStr === "N/A") return 0;
-  var s = String(dateStr).trim();
-  s = s.replace(" ", "T");
-  var d = new Date(s);
-  if (!isNaN(d.getTime())) return d.getTime();
-  
-  var m = s.match(/(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
-  if (m) {
-    return new Date(parseInt(m[1]), parseInt(m[2]) - 1, parseInt(m[3])).getTime();
-  }
-  return 0;
-}
-
 /* ======================================================
-   BLOOD DONORS DELHI - APPLICATION LOGIC
-   Official Hindi WhatsApp Congratulatory Message,
-   3 Component Counters (Blood, Platelets, Plasma),
-   Aggressive Question Cleaner & Admin Security
+   BLOOD DONORS DELHI - APPLICATION LOGIC (v2.0)
+   Unique Donor ID Generation, Conditional RSS Congratulatory Line,
+   Family Donation Slip Upload, 3 Initial Component Counts,
+   Locality Autocomplete, Admin Eligibility Overrides & Live Sync
    ====================================================== */
 
 const DEFAULT_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbxoLmVXaSL3jnLwnbElh8lXzIhKLo2rQsdO9XKykyyy5DXtKT_KfC17FlAPjmsDeDdWzQ/exec";
@@ -10364,13 +10676,17 @@ let appState = {
 const ELIGIBILITY_DAYS = 90;
 const CURRENT_APP_DATE = new Date("2026-07-19");
 
+// Admin credentials (change these to your own secret values before deploying).
+// Username match is case-insensitive; password match is case-sensitive.
+const ADMIN_USERNAME = "admin";
+const ADMIN_PASSCODE = "Blood@123";
+
 document.addEventListener("DOMContentLoaded", () => {
   initData();
   setupEventListeners();
   renderAllViews();
   fetchLiveDataFromGoogleSheets(false);
   checkAuthenticationGuard();
-  setInterval(() => fetchLiveDataFromGoogleSheets(false), 60000);
 });
 
 function initData() {
@@ -10381,9 +10697,12 @@ function initData() {
   if (typeof INITIAL_DONORS !== "undefined") {
     appState.donors = INITIAL_DONORS.map(d => ({
       ...d,
+      rssMember: d.rssMember || "No",
       bloodDonations: d.bloodDonations || d.totalDonations || 1,
       plateletsDonations: d.plateletsDonations || 0,
-      plasmaDonations: d.plasmaDonations || 0
+      plasmaDonations: d.plasmaDonations || 0,
+      eligibilityStatus: d.eligibilityStatus || "Eligible",
+      nextEligibilityDate: d.nextEligibilityDate || "Eligible Now"
     }));
   }
   if (typeof INITIAL_COMPLETED_REQUIREMENTS !== "undefined") {
@@ -10404,16 +10723,13 @@ function cleanPhone(phoneStr) {
 
 function cleanWaValue(rawVal) {
   if (!rawVal) return "";
-  let s = String(rawVal).trim();
-  s = s.replace(/\*/g, "");
+  let s = String(rawVal).trim().replace(/\*/g, "");
 
-  // If line starts with N# or N. (e.g. "1# Required Blood - B Negative" or "3# Replacement with other blood group - not allowed")
   const numMatch = s.match(/^(?:\d+#|\d+\.)\s*(.*?)(?:[~\-:–=]\s*)(.*)$/s);
   if (numMatch) {
     s = numMatch[2].trim();
   }
 
-  // Strip explicit question prefixes regardless of delimiter used
   const questionPrefixes = [
     /^(?:1#|1\.)?\s*Required\s*(?:Blood\s*or\s*platelets)?\s*(?:\(.*\))?[\s~:\-–=]*/i,
     /^(?:2#|2\.)?\s*Blood\s*Group[\s~:\-–=]*/i,
@@ -10430,14 +10746,13 @@ function cleanWaValue(rawVal) {
     /^(?:13#|13\.)?\s*Attendant\s*Name[\s~:\-–=]*/i,
     /^(?:14#|14\.)?\s*Attendant\s*Phone\s*(?:No)?\s*(?:\(.*\))?[\s~:\-–=]*/i,
     /^(?:15#|15\.)?\s*Family\s*Member\s*Donation[\s~:\-–=]*/i,
-    /^(?:16#|16\.)?\s*Blood\s*Donation\s*Timings\s*(?:\(.*\))?[\s~:\-–=]*/i,
+    /^(?:16#|16\.)?\s*Blood\s*Donation\s*Timings\s*(?:\(.*\))?[\s~:\-–=]*/i
   ];
 
   questionPrefixes.forEach(pat => {
     s = s.replace(pat, "");
   });
 
-  // Strip remaining parenthetical headers
   s = s.replace(/Blood Donation Timings \([^)]*\)/gi, "");
   s = s.replace(/Required \(Blood or platelets\)/gi, "");
   s = s.replace(/Replacement with other blood group\([^)]*\)/gi, "");
@@ -10453,9 +10768,36 @@ function cleanWaValue(rawVal) {
   return s.trim();
 }
 
+function parseJsDate(dateStr) {
+  if (!dateStr || dateStr === "Not Available" || dateStr === "N/A") return 0;
+  let s = String(dateStr).trim().replace(" ", "T");
+  let d = new Date(s);
+  if (!isNaN(d.getTime())) return d.getTime();
+  
+  let m = s.match(/(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+  if (m) {
+    return new Date(parseInt(m[1]), parseInt(m[2]) - 1, parseInt(m[3])).getTime();
+  }
+  return 0;
+}
+
+function generateUniqueDonorId() {
+  let maxNum = 0;
+  appState.donors.forEach(d => {
+    const match = String(d.id || "").match(/DNR-(\d+)/i);
+    if (match) {
+      const n = parseInt(match[1]);
+      if (n > maxNum) maxNum = n;
+    }
+  });
+  return `DNR-${String(maxNum + 1).padStart(3, '0')}`;
+}
+
 function checkAuthenticationGuard() {
   const authModal = document.getElementById("authModal");
+  if (!authModal) return;
   if (!appState.currentUser && !appState.userRole) {
+    switchModalTab("donor-login");
     authModal.classList.add("strict-lock");
     authModal.classList.add("active");
   } else {
@@ -10490,6 +10832,8 @@ function unlockAndCloseAuthModal() {
   }
 }
 
+let latestFetchSeq = 0;
+
 function fetchLiveDataFromGoogleSheets(userTriggered = false) {
   const url = appState.webhookUrl;
   if (!url) return;
@@ -10500,26 +10844,45 @@ function fetchLiveDataFromGoogleSheets(userTriggered = false) {
     badge.textContent = "Syncing with Google Sheets...";
   }
 
-  const scriptId = "jsonp_google_sheets_script";
-  const existingScript = document.getElementById(scriptId);
-  if (existingScript) existingScript.remove();
+  // Each request gets its own sequence number + its own JSONP callback name.
+  // If an older, slower request's response arrives AFTER a newer one (out-of-order,
+  // e.g. the 60-second auto-refresh overlapping a just-triggered manual refresh right
+  // after logging a donation), we now DISCARD the stale response instead of letting it
+  // wipe out fresher data. This is what caused completed requests to "flash and disappear".
+  const mySeq = ++latestFetchSeq;
+  const callbackName = "handleSheetsData_" + mySeq;
+  const scriptId = "jsonp_google_sheets_script_" + mySeq;
+
+  window[callbackName] = function(response) {
+    delete window[callbackName];
+    const scr = document.getElementById(scriptId);
+    if (scr) scr.remove();
+    if (mySeq !== latestFetchSeq) return; // stale response, ignore
+    applySheetsData(response, badge);
+  };
 
   const script = document.createElement("script");
   script.id = scriptId;
-  script.src = `${url}?action=FETCH_LIVE&callback=handleSheetsData&t=${Date.now()}`;
+  script.src = `${url}?action=FETCH_LIVE&callback=${callbackName}&t=${Date.now()}`;
   script.onerror = () => {
+    delete window[callbackName];
+    if (mySeq !== latestFetchSeq) return;
     if (badge) {
       badge.className = "badge badge-warning";
       badge.textContent = "Offline Mode";
     }
-    if (userTriggered) showToast("Could not sync with Google Sheets. Check script deployment settings.");
+    if (userTriggered) showToast("Could not sync with Google Sheets. Check script deployment URL.");
   };
 
   document.body.appendChild(script);
 }
 
-window.handleSheetsData = function(response) {
-  const badge = document.getElementById("connectionStatusBadge");
+function normalizeRss(val) {
+  const v = String(val === undefined || val === null ? "" : val).trim().toLowerCase();
+  return (v === "yes" || v === "true" || v === "1") ? "Yes" : "No";
+}
+
+function applySheetsData(response, badge) {
   const details = document.getElementById("connectionDetailsText");
 
   if (response && response.status === "SUCCESS") {
@@ -10527,8 +10890,8 @@ window.handleSheetsData = function(response) {
 
     if (response.donors && response.donors.length > 0) {
       appState.donors = response.donors.map(d => {
-        const tot = parseInt(d["Total Donations"]) || 1;
-        const bld = parseInt(d["Blood Donations Count"]) || tot;
+        const tot = parseInt(d["Total Donations"]) || 0;
+        const bld = parseInt(d["Blood Donations Count"]) || tot || 1;
         const plt = parseInt(d["Platelets Donations Count"]) || 0;
         const plsm = parseInt(d["Plasma Donations Count"]) || 0;
 
@@ -10545,12 +10908,15 @@ window.handleSheetsData = function(response) {
           pincode: String(d["Pincode"] || d.pincode || ""),
           officeArea: String(d["Office Address / Locality"] || d.officeArea || "Not Available"),
           profession: String(d["Profession"] || d.profession || "Not Available"),
-          totalDonations: bld + plt + plsm || tot,
+          totalDonations: bld + plt + plsm || 1,
           bloodDonations: bld,
           plateletsDonations: plt,
           plasmaDonations: plsm,
-          lastDonationDate: String(d["Last Donation Date"] || d.lastDonationDate || "Not Available"),
-          lastComponent: String(d["Last Component"] || d.lastComponent || "Blood")
+          rssMember: normalizeRss(d["RSS Member"] ?? d["RSS MEMBER"] ?? d["RSS"] ?? d["RSS Member (Yes/No)"] ?? d.rssMember),
+          eligibilityStatus: String(d["Eligibility Status"] ?? d["ELIGIBILITY STATUS"] ?? d["Eligibility"] ?? d["Status"] ?? d.eligibilityStatus ?? "Eligible"),
+          nextEligibilityDate: String(d["Next Eligibility Date"] ?? d["NEXT ELIGIBILITY DATE"] ?? d["Next Eligibility"] ?? d["Eligibility Date"] ?? d.nextEligibilityDate ?? "Eligible Now"),
+          lastDonationDate: String(d["Last Donation Date"] ?? d.lastDonationDate ?? "Not Available"),
+          lastComponent: String(d["Last Component"] ?? d.lastComponent ?? "Blood")
         };
       });
     }
@@ -10576,13 +10942,14 @@ window.handleSheetsData = function(response) {
         attendantPhone: cleanWaValue(r["14# Attendant Phone No"] || r.attendantPhone || ""),
         familyMemberDonation: cleanWaValue(r["15# Family Member Donation"] || r.familyMemberDonation || ""),
         donationTimings: cleanWaValue(r["16# Blood Donation Timings"] || r.donationTimings || ""),
-        driveFolderUrl: String(r["Google Drive Folder URL"] || r.driveFolderUrl || "")
+        driveFolderUrl: String(r["Google Drive Folder URL"] || r.driveFolderUrl || ""),
+        familySlipUrl: String(r["Family Donation Slip Drive URL"] || r.familySlipUrl || "")
       }));
     }
 
-    if (response.completedRequirements) {
+    if (response.completedRequirements && response.completedRequirements.length > 0) {
       appState.completedRequirements = response.completedRequirements.map(c => ({
-        reqId: String(c["Patient Requirement ID"] || c.reqId || ""),
+        reqId: String(c["Patient Requirement ID"] || c["reqId"] || c["Requirement ID"] || c["REQ ID"] || "REQ-HIST"),
         postedDate: String(c["Requirement Posted Timestamp"] || c.postedDate || ""),
         status: "Completed",
         requiredComponent: cleanWaValue(c["1# Required (Blood or platelets)"] || c.requiredComponent || "Blood"),
@@ -10602,6 +10969,7 @@ window.handleSheetsData = function(response) {
         familyMemberDonation: cleanWaValue(c["15# Family Member Donation"] || c.familyMemberDonation || ""),
         donationTimings: cleanWaValue(c["16# Blood Donation Timings"] || c.donationTimings || ""),
         driveFolderUrl: String(c["Google Drive Folder URL"] || c.driveFolderUrl || ""),
+        familySlipUrl: String(c["Family Donation Slip Drive URL"] || c.familySlipUrl || ""),
         completedDate: String(c["Completed Date"] || c.completedDate || ""),
         donorId: String(c["Donor ID"] || c.donorId || ""),
         donorName: String(c["Donor Name"] || c.donorName || ""),
@@ -10615,30 +10983,65 @@ window.handleSheetsData = function(response) {
       badge.textContent = "Synced with Google Sheets ✓";
     }
     if (details) {
-      details.textContent = `Connected live to Google Sheets (${response.spreadsheetName || 'Active'}). Loaded ${appState.donors.length} donors & ${appState.completedRequirements.length} completed requests!`;
+      details.textContent = `Connected live to Google Sheets (${response.spreadsheetName || 'Active'}). Loaded ${appState.donors.length} donors!`;
     }
 
     renderAllViews();
-    showToast(`Synced Live Google Sheets! Loaded ${appState.donors.length} Donors, ${appState.activeRequirements.length} Active, ${appState.completedRequirements.length} Completed.`);
   }
-};
+}
 
-function getEligibilityInfo(lastDonationDateStr) {
-  if (!lastDonationDateStr || lastDonationDateStr === "Not Available") {
-    return { isEligible: true, daysElapsed: 999, daysRemaining: 0 };
+function getEligibilityInfo(donor) {
+  if (!donor) return { isEligible: true, statusText: "Eligible Now", nextDateStr: "Eligible Now" };
+
+  const rawStatus = String(donor.eligibilityStatus || "").trim().toLowerCase();
+  let rawNextDate = String(donor.nextEligibilityDate || "").trim();
+
+  if (rawNextDate.includes("T")) {
+    rawNextDate = rawNextDate.split("T")[0];
   }
-  const lastDate = new Date(lastDonationDateStr);
-  if (isNaN(lastDate.getTime())) {
-    return { isEligible: true, daysElapsed: 999, daysRemaining: 0 };
+
+  // 1. Evaluate explicit Next Eligibility Date from Col S if present
+  if (rawNextDate && rawNextDate !== "Eligible Now" && rawNextDate !== "Not Available" && rawNextDate !== "N/A" && rawNextDate !== "undefined") {
+    const nextDate = new Date(rawNextDate);
+    if (!isNaN(nextDate.getTime())) {
+      const today = new Date(CURRENT_APP_DATE.getFullYear(), CURRENT_APP_DATE.getMonth(), CURRENT_APP_DATE.getDate());
+      const target = new Date(nextDate.getFullYear(), nextDate.getMonth(), nextDate.getDate());
+
+      if (target > today) {
+        const formattedDateStr = nextDate.toISOString().split("T")[0];
+        return { isEligible: false, statusText: "Ineligible", nextDateStr: formattedDateStr };
+      } else {
+        return { isEligible: true, statusText: "Eligible Now", nextDateStr: "Eligible Now" };
+      }
+    } else {
+      if (rawStatus.includes("ineligible") || rawStatus === "no" || rawStatus === "in-eligible") {
+        return { isEligible: false, statusText: "Ineligible", nextDateStr: rawNextDate };
+      }
+    }
   }
-  const diffTime = CURRENT_APP_DATE.getTime() - lastDate.getTime();
-  const daysElapsed = Math.floor(diffTime / (1000 * 3600 * 24));
-  if (daysElapsed >= ELIGIBILITY_DAYS) {
-    return { isEligible: true, daysElapsed: daysElapsed, daysRemaining: 0 };
-  } else {
-    const daysRemaining = ELIGIBILITY_DAYS - daysElapsed;
-    return { isEligible: false, daysElapsed: daysElapsed, daysRemaining: daysRemaining };
+
+  // 2. Evaluate explicit Eligibility Status from Col R
+  if (rawStatus.includes("ineligible") || rawStatus === "no" || rawStatus === "in-eligible" || rawStatus === "false") {
+    return { isEligible: false, statusText: "Ineligible", nextDateStr: rawNextDate || "Ineligible" };
   }
+
+  // 3. Fallback to 90-day calculation from lastDonationDate
+  const lastDonationDateStr = donor.lastDonationDate;
+  if (lastDonationDateStr && lastDonationDateStr !== "Not Available") {
+    const lastDate = new Date(lastDonationDateStr);
+    if (!isNaN(lastDate.getTime())) {
+      const diffTime = CURRENT_APP_DATE.getTime() - lastDate.getTime();
+      const daysElapsed = Math.floor(diffTime / (1000 * 3600 * 24));
+
+      if (daysElapsed < ELIGIBILITY_DAYS) {
+        const nextDate = new Date(lastDate.getTime() + (ELIGIBILITY_DAYS * 24 * 60 * 60 * 1000));
+        const nextDateStr = nextDate.toISOString().split("T")[0];
+        return { isEligible: false, statusText: "Ineligible", nextDateStr: nextDateStr };
+      }
+    }
+  }
+
+  return { isEligible: true, statusText: "Eligible Now", nextDateStr: "Eligible Now" };
 }
 
 function setupEventListeners() {
@@ -10655,10 +11058,16 @@ function setupEventListeners() {
       appState.currentUser = null;
       appState.userRole = null;
       appState.isAdmin = false;
+      document.getElementById("donorLoginForm").reset();
+      document.getElementById("adminLoginForm").reset();
+      const regForm = document.getElementById("registerForm");
+      if (regForm) regForm.reset();
+      switchModalTab("donor-login");
       showToast("Logged out successfully");
       applyRolePermissions();
       checkAuthenticationGuard();
     } else {
+      switchModalTab("donor-login");
       openModal("authModal");
     }
   });
@@ -10726,25 +11135,21 @@ function setupEventListeners() {
     });
   });
 
-  // Donor Login Form Submit
   document.getElementById("donorLoginForm").addEventListener("submit", (e) => {
     e.preventDefault();
     handleDonorLogin();
   });
 
-  // Admin Login Form Submit
   document.getElementById("adminLoginForm").addEventListener("submit", (e) => {
     e.preventDefault();
     handleAdminLogin();
   });
 
-  // Registration Form Submit
   document.getElementById("registerForm").addEventListener("submit", (e) => {
     e.preventDefault();
     handleRegistration();
   });
 
-  // My Profile Form Submit
   const profileForm = document.getElementById("myProfileForm");
   if (profileForm) {
     profileForm.addEventListener("submit", (e) => {
@@ -10771,18 +11176,19 @@ function setupEventListeners() {
 
   document.getElementById("searchInput").addEventListener("input", () => renderDonorsTable());
   document.getElementById("filterBloodGroup").addEventListener("change", () => renderDonorsTable());
-  document.getElementById("filterComponent").addEventListener("change", () => renderDonorsTable());
+  if (document.getElementById("donorSortOrder")) document.getElementById("donorSortOrder").addEventListener("change", () => renderDonorsTable());
+  document.getElementById("filterRss").addEventListener("change", () => renderDonorsTable());
   document.getElementById("filterEligibility").addEventListener("change", () => renderDonorsTable());
 
   document.getElementById("resetFiltersBtn").addEventListener("click", () => {
     document.getElementById("searchInput").value = "";
     document.getElementById("filterBloodGroup").value = "ALL";
-    document.getElementById("filterComponent").value = "ALL";
+    if (document.getElementById("donorSortOrder")) document.getElementById("donorSortOrder").value = "MOST_DONATIONS_DESC";
+    document.getElementById("filterRss").value = "ALL";
     document.getElementById("filterEligibility").value = "ALL";
     renderDonorsTable();
   });
 
-  // Completed Requests Filters
   document.getElementById("compSearchPatient").addEventListener("input", () => renderCompletedRequirementsTable());
   document.getElementById("compFilterDonorId").addEventListener("input", () => renderCompletedRequirementsTable());
   const compDonorNameInput = document.getElementById("compFilterDonorName");
@@ -10800,7 +11206,6 @@ function setupEventListeners() {
     renderCompletedRequirementsTable();
   });
 
-  // Webhook Buttons
   const saveWebBtn = document.getElementById("saveWebhookBtn");
   if (saveWebBtn) {
     saveWebBtn.addEventListener("click", () => {
@@ -10816,30 +11221,33 @@ function setupEventListeners() {
     testConnBtn.addEventListener("click", () => fetchLiveDataFromGoogleSheets(true));
   }
 
-  const syncFromSheetsBtn = document.getElementById("syncFromSheetsBtn");
-  if (syncFromSheetsBtn) {
-    syncFromSheetsBtn.addEventListener("click", () => {
+  const manualRefreshBtn = document.getElementById("manualRefreshBtn");
+  if (manualRefreshBtn) {
+    manualRefreshBtn.addEventListener("click", () => {
+      showToast("Refreshing data from Google Sheets...");
       fetchLiveDataFromGoogleSheets(true);
     });
+  }
+
+  const syncFromSheetsBtn = document.getElementById("syncFromSheetsBtn");
+  if (syncFromSheetsBtn) {
+    syncFromSheetsBtn.addEventListener("click", () => fetchLiveDataFromGoogleSheets(true));
   }
 
   const copyBtn = document.getElementById("copyScriptBtn");
   if (copyBtn) {
     copyBtn.addEventListener("click", () => {
       const scriptText = document.getElementById("scriptCodeBlock").innerText;
-      navigator.clipboard.writeText(scriptText).then(() => {
-        showToast("Google Apps Script code copied to clipboard!");
-      });
+      navigator.clipboard.writeText(scriptText).then(() => showToast("Google Apps Script code copied!"));
     });
   }
 
-  // Copy & Share Congratulate Message Buttons (ADMIN ONLY)
   const copyCongratulateBtn = document.getElementById("copyCongratulateBtn");
   if (copyCongratulateBtn) {
     copyCongratulateBtn.addEventListener("click", () => {
       if (!appState.isAdmin) return;
       const txt = document.getElementById("congratulateTextarea").value;
-      navigator.clipboard.writeText(txt).then(() => showToast("Hindi Congratulatory message copied to clipboard!"));
+      navigator.clipboard.writeText(txt).then(() => showToast("Hindi Congratulatory message copied!"));
     });
   }
 
@@ -10886,7 +11294,7 @@ function handleDonorLogin() {
   const dobInput = document.getElementById("loginDob").value.trim();
 
   const donor = appState.donors.find(d => {
-    const nameMatch = d.name.toLowerCase() === nameInput || d.name.toLowerCase().includes(nameInput);
+    const nameMatch = d.name.trim().toLowerCase() === nameInput;
     const dobMatch = (d.dob && d.dob.includes(dobInput)) || (d.phone && d.phone.includes(dobInput));
     return nameMatch && dobMatch;
   });
@@ -10896,10 +11304,11 @@ function handleDonorLogin() {
     appState.userRole = "DONOR";
     applyRolePermissions();
     unlockAndCloseAuthModal();
+    document.getElementById("donorLoginForm").reset();
     showToast(`Welcome back, Donor ${donor.name} (${donor.id})!`);
     fetchLiveDataFromGoogleSheets(true);
   } else {
-    showToast("No matching donor found. Check Name/DOB or Register!");
+    showToast("No matching donor found. Check Full Name & DOB!");
   }
 }
 
@@ -10907,15 +11316,22 @@ function handleAdminLogin() {
   const user = document.getElementById("adminUser").value.trim();
   const pass = document.getElementById("adminPass").value.trim();
 
-  if (user && pass) {
-    appState.currentUser = { id: "ADMIN-001", name: user || "Administrator", phone: "Admin" };
+  if (!user || !pass) {
+    showToast("Please enter Admin Username & Password.");
+    return;
+  }
+
+  if (user.toLowerCase() === ADMIN_USERNAME.toLowerCase() && pass === ADMIN_PASSCODE) {
+    appState.currentUser = { id: "ADMIN-001", name: "Administrator", phone: "Admin" };
     appState.userRole = "ADMIN";
     applyRolePermissions();
     unlockAndCloseAuthModal();
+    document.getElementById("adminLoginForm").reset();
     showToast("Logged in as Administrator! Full master controls enabled.");
     fetchLiveDataFromGoogleSheets(true);
   } else {
-    showToast("Please enter Admin Username & Password.");
+    document.getElementById("adminPass").value = "";
+    showToast("Incorrect Admin Username or Passcode. Please try again.");
   }
 }
 
@@ -10927,6 +11343,7 @@ function handleMyProfileSave() {
     appState.donors[dIdx].name = document.getElementById("myProfileName").value.trim();
     appState.donors[dIdx].phone = document.getElementById("myProfilePhone").value.trim();
     appState.donors[dIdx].dob = document.getElementById("myProfileDob").value.trim() || "Not Available";
+    appState.donors[dIdx].rssMember = document.getElementById("myProfileRssMember").value;
     appState.donors[dIdx].homeArea = document.getElementById("myProfileHomeArea").value.trim();
     appState.donors[dIdx].pincode = document.getElementById("myProfilePincode").value.trim();
     appState.donors[dIdx].email = document.getElementById("myProfileEmail").value.trim() || "Not Available";
@@ -10937,9 +11354,15 @@ function handleMyProfileSave() {
     appState.currentUser = appState.donors[dIdx];
     updateUserHeader();
     renderDonorsTable();
+    showToast("Saving your profile to Google Sheets...");
 
-    syncToGoogleWebhook({ action: "REGISTER_DONOR", ...appState.donors[dIdx] });
-    showToast("Your profile details updated successfully!");
+    syncToGoogleWebhook({ action: "REGISTER_DONOR", ...appState.donors[dIdx] }).then(result => {
+      if (result && result.status === "SUCCESS") {
+        showToast("Your profile details saved & synced to Google Sheets!");
+      } else {
+        showToast("Could not sync your profile to Google Sheets. Please check your connection and try again.");
+      }
+    });
   }
 }
 
@@ -10952,6 +11375,7 @@ function renderMyProfileTab() {
   document.getElementById("myProfilePhone").value = d.phone;
   document.getElementById("myProfileBloodGroup").value = d.bloodGroup;
   document.getElementById("myProfileDob").value = d.dob;
+  document.getElementById("myProfileRssMember").value = d.rssMember || "No";
   document.getElementById("myProfileHomeArea").value = d.homeArea;
   document.getElementById("myProfilePincode").value = d.pincode;
   document.getElementById("myProfileEmail").value = d.email === "Not Available" ? "" : d.email;
@@ -10965,6 +11389,10 @@ function handleRegistration() {
   const phone = document.getElementById("regPhone").value.trim();
   const bloodGroup = document.getElementById("regBloodGroup").value;
   const dob = document.getElementById("regDob").value;
+  const rssMember = document.getElementById("regRssMember").value;
+  const bloodCount = parseInt(document.getElementById("regBloodCount").value) || 0;
+  const plasmaCount = parseInt(document.getElementById("regPlasmaCount").value) || 0;
+  const plateletsCount = parseInt(document.getElementById("regPlateletsCount").value) || 0;
   const email = document.getElementById("regEmail").value.trim() || "Not Available";
   const instagram = document.getElementById("regInstagram").value.trim() || "Not Available";
   const homeArea = document.getElementById("regHomeArea").value.trim();
@@ -10972,21 +11400,23 @@ function handleRegistration() {
   const officeArea = document.getElementById("regOfficeArea").value.trim() || "Not Available";
   const profession = document.getElementById("regProfession").value.trim() || "Not Available";
 
-  const nextIdNum = appState.donors.length + 1;
-  const donorId = `DNR-${String(nextIdNum).padStart(3, '0')}`;
-
   let age = "Not Available";
   if (dob) {
     const bDate = new Date(dob);
     age = CURRENT_APP_DATE.getFullYear() - bDate.getFullYear();
   }
 
+  const totCount = bloodCount + plasmaCount + plateletsCount;
+
+  // Show a temporary placeholder locally; the REAL, unique Donor ID is generated by the
+  // Google Sheet itself (server-side) and linked back here once the sync confirms it.
   const newDonor = {
-    id: donorId, name: name, phone: phone, bloodGroup: bloodGroup,
+    id: "DNR-PENDING", name: name, phone: phone, bloodGroup: bloodGroup,
     dob: dob || "Not Available", age: age, email: email, instagram: instagram,
     homeArea: homeArea, pincode: pincode, officeArea: officeArea, profession: profession,
-    totalDonations: 1, bloodDonations: 1, plateletsDonations: 0, plasmaDonations: 0,
-    lastDonationDate: CURRENT_APP_DATE.toISOString().split("T")[0], lastComponent: "Blood"
+    totalDonations: totCount, bloodDonations: bloodCount, plateletsDonations: plateletsCount, plasmaDonations: plasmaCount,
+    rssMember: rssMember, eligibilityStatus: "Eligible", nextEligibilityDate: "Eligible Now",
+    lastDonationDate: totCount > 0 ? CURRENT_APP_DATE.toISOString().split("T")[0] : "Not Available", lastComponent: "Blood"
   };
 
   appState.donors.unshift(newDonor);
@@ -10995,10 +11425,25 @@ function handleRegistration() {
   applyRolePermissions();
   renderAllViews();
   unlockAndCloseAuthModal();
+  document.getElementById("registerForm").reset();
+  switchModalTab("donor-login");
+  showToast("Registering & generating your Donor ID in Google Sheets...");
 
-  syncToGoogleWebhook({ action: "REGISTER_DONOR", ...newDonor });
-  showToast(`Registration Complete! Assigned Donor ID: ${donorId}`);
-  fetchLiveDataFromGoogleSheets(true);
+  syncToGoogleWebhook({ action: "REGISTER_DONOR", ...newDonor, id: "" }).then(result => {
+    if (result && result.status === "SUCCESS" && result.donorId) {
+      newDonor.id = result.donorId;
+      if (appState.currentUser && appState.currentUser.id === "DNR-PENDING") {
+        appState.currentUser = newDonor;
+      }
+      updateUserHeader();
+      renderMyProfileTab();
+      renderDonorsTable();
+      showToast(`Registration Complete! Your unique Donor ID is ${result.donorId}`);
+    } else {
+      showToast("Registered on this device, but syncing to Google Sheets failed. Please check your internet connection and try 'Sync from Sheets'.");
+    }
+    fetchLiveDataFromGoogleSheets(true);
+  });
 }
 
 function handleWhatsAppParse() {
@@ -11058,31 +11503,60 @@ function handleWhatsAppParse() {
   };
 
   const fileInput = document.getElementById("waFile");
+  const familySlipInput = document.getElementById("waFamilySlipFile");
+
+  let photoBase64 = null, photoMimeType = null;
+  let familySlipBase64 = null, familySlipMimeType = null;
+
+  const readPromises = [];
+
   if (fileInput && fileInput.files && fileInput.files[0]) {
-    const file = fileInput.files[0];
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      const photoBase64 = e.target.result.split(',')[1];
-      sendWaReq(newReq, photoBase64, file.type);
-    };
-    reader.readAsDataURL(file);
-  } else {
-    sendWaReq(newReq, null, null);
+    readPromises.push(new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        photoBase64 = e.target.result.split(',')[1];
+        photoMimeType = fileInput.files[0].type;
+        resolve();
+      };
+      reader.readAsDataURL(fileInput.files[0]);
+    }));
+  }
+
+  if (familySlipInput && familySlipInput.files && familySlipInput.files[0]) {
+    readPromises.push(new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        familySlipBase64 = e.target.result.split(',')[1];
+        familySlipMimeType = familySlipInput.files[0].type;
+        resolve();
+      };
+      reader.readAsDataURL(familySlipInput.files[0]);
+    }));
   }
 
   appState.activeRequirements.unshift(newReq);
   renderRequirements();
   closeAllModals();
+  showToast(`Parsed WhatsApp Message! Syncing Active Patient Request ${reqId} to Google Sheets...`);
 
-  showToast(`Parsed WhatsApp Message! Active Patient Request ${reqId} created.`);
-}
-
-function sendWaReq(reqObj, photoBase64, photoMimeType) {
-  syncToGoogleWebhook({
-    action: "POST_ACTIVE_REQUEST",
-    ...reqObj,
-    photoBase64: photoBase64,
-    photoMimeType: photoMimeType
+  Promise.all(readPromises).then(() => {
+    return syncToGoogleWebhook({
+      action: "POST_ACTIVE_REQUEST",
+      ...newReq,
+      photoBase64: photoBase64,
+      photoMimeType: photoMimeType,
+      familySlipBase64: familySlipBase64,
+      familySlipMimeType: familySlipMimeType
+    });
+  }).then(result => {
+    if (result && result.status === "SUCCESS") {
+      if (result.driveFolderUrl) newReq.driveFolderUrl = result.driveFolderUrl;
+      if (result.familySlipUrl) newReq.familySlipUrl = result.familySlipUrl;
+      showToast(`Request ${reqId} synced to Google Sheets & Drive!`);
+    } else {
+      showToast(`Request ${reqId} created locally, but syncing to Google Sheets failed. Please retry.`);
+    }
+    renderRequirements();
   });
 }
 
@@ -11103,12 +11577,62 @@ function handleManualReqSubmit() {
     driveFolderUrl: `https://drive.google.com/drive/folders/PAT_${reqId}`
   };
 
+  const photoInput = document.getElementById("reqFile");
+  const familySlipInput = document.getElementById("manualFamilySlipFile");
+
+  let photoBase64 = null, photoMimeType = null;
+  let familySlipBase64 = null, familySlipMimeType = null;
+
+  const readPromises = [];
+
+  if (photoInput && photoInput.files && photoInput.files[0]) {
+    readPromises.push(new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        photoBase64 = e.target.result.split(',')[1];
+        photoMimeType = photoInput.files[0].type;
+        resolve();
+      };
+      reader.readAsDataURL(photoInput.files[0]);
+    }));
+  }
+
+  if (familySlipInput && familySlipInput.files && familySlipInput.files[0]) {
+    readPromises.push(new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        familySlipBase64 = e.target.result.split(',')[1];
+        familySlipMimeType = familySlipInput.files[0].type;
+        resolve();
+      };
+      reader.readAsDataURL(familySlipInput.files[0]);
+    }));
+  }
+
   appState.activeRequirements.unshift(newReq);
   renderRequirements();
   closeAllModals();
+  showToast(`Patient Requirement ${reqId} created. Syncing to Google Sheets...`);
 
-  syncToGoogleWebhook({ action: "POST_ACTIVE_REQUEST", ...newReq });
-  showToast(`Patient Requirement ${reqId} created.`);
+  Promise.all(readPromises).then(() => {
+    return syncToGoogleWebhook({
+      action: "POST_ACTIVE_REQUEST",
+      ...newReq,
+      photoBase64: photoBase64,
+      photoMimeType: photoMimeType,
+      familySlipBase64: familySlipBase64,
+      familySlipMimeType: familySlipMimeType
+    });
+  }).then(result => {
+    if (result && result.status === "SUCCESS") {
+      if (result.driveFolderUrl) newReq.driveFolderUrl = result.driveFolderUrl;
+      if (result.familySlipUrl) newReq.familySlipUrl = result.familySlipUrl;
+      showToast(`Request ${reqId} synced to Google Sheets & Drive!`);
+    } else {
+      showToast(`Request ${reqId} created locally, but syncing to Google Sheets failed. Please retry.`);
+    }
+    renderRequirements();
+  });
 }
 
 function updateLogDonationCount() {
@@ -11117,18 +11641,17 @@ function updateLogDonationCount() {
   let prevCount = 0;
 
   if (donor) {
-    if (comp === "Platelets") {
-      prevCount = donor.plateletsDonations || 0;
-    } else if (comp === "Plasma") {
-      prevCount = donor.plasmaDonations || 0;
-    } else {
-      prevCount = donor.bloodDonations || 1;
-    }
+    if (comp === "Platelets") prevCount = donor.plateletsDonations || 0;
+    else if (comp === "Plasma") prevCount = donor.plasmaDonations || 0;
+    else prevCount = donor.bloodDonations || 1;
   }
 
   const logCountInput = document.getElementById("logCount");
-  if (logCountInput) {
-    logCountInput.value = prevCount + 1;
+  const logCountLabel = document.getElementById("logCountLabel");
+
+  if (logCountInput) logCountInput.value = prevCount + 1;
+  if (logCountLabel) {
+    logCountLabel.textContent = `Total Donation Count of ${comp} till date (including today's donation) *`;
   }
 }
 
@@ -11163,7 +11686,6 @@ function openLogDonationModal() {
 
   document.getElementById("logDate").value = CURRENT_APP_DATE.toISOString().split("T")[0];
   updateLogDonationCount();
-
   openModal("logDonationModal");
 }
 
@@ -11180,17 +11702,20 @@ function handleLogDonation() {
 
   const donor = appState.currentUser || { id: "DNR-GUEST", name: "Guest Volunteer", phone: "Not Available" };
 
+  // 90-Day Next Eligibility Date Calculation
+  const donDate = new Date(logDate);
+  const nextEligDate = new Date(donDate.getTime() + (ELIGIBILITY_DAYS * 24 * 60 * 60 * 1000));
+  const nextEligStr = nextEligDate.toISOString().split("T")[0];
+
   if (appState.currentUser) {
     appState.currentUser.lastDonationDate = logDate;
     appState.currentUser.lastComponent = component;
+    appState.currentUser.eligibilityStatus = "Ineligible";
+    appState.currentUser.nextEligibilityDate = nextEligStr;
 
-    if (component === "Platelets") {
-      appState.currentUser.plateletsDonations = userCount;
-    } else if (component === "Plasma") {
-      appState.currentUser.plasmaDonations = userCount;
-    } else {
-      appState.currentUser.bloodDonations = userCount;
-    }
+    if (component === "Platelets") appState.currentUser.plateletsDonations = userCount;
+    else if (component === "Plasma") appState.currentUser.plasmaDonations = userCount;
+    else appState.currentUser.bloodDonations = userCount;
 
     appState.currentUser.totalDonations = (appState.currentUser.bloodDonations || 1) + (appState.currentUser.plateletsDonations || 0) + (appState.currentUser.plasmaDonations || 0);
 
@@ -11200,48 +11725,60 @@ function handleLogDonation() {
     }
   }
 
-  const reqIdx = appState.activeRequirements.findIndex(r => r.reqId === reqId);
-  let completedItem = null;
+  const reqIdx = appState.activeRequirements.findIndex(r => r.reqId && reqId && r.reqId.trim().toLowerCase() === reqId.trim().toLowerCase());
+  let activeReq = reqIdx !== -1 ? appState.activeRequirements.splice(reqIdx, 1)[0] : null;
 
-  if (reqIdx !== -1) {
-    const activeReq = appState.activeRequirements.splice(reqIdx, 1)[0];
-    completedItem = {
-      reqId: activeReq.reqId,
-      postedDate: activeReq.postedDate,
-      status: "Completed",
-      completedDate: logDate,
-      requiredComponent: cleanWaValue(activeReq.requiredComponent),
-      bloodGroup: cleanWaValue(activeReq.bloodGroup),
-      replacementAllowed: cleanWaValue(activeReq.replacementAllowed),
-      noOfUnits: cleanWaValue(activeReq.noOfUnits),
-      hospitalName: cleanWaValue(activeReq.hospitalName),
-      hospitalArea: cleanWaValue(activeReq.hospitalArea),
-      patientName: cleanWaValue(activeReq.patientName),
-      uhidNo: cleanWaValue(activeReq.uhidNo),
-      patientHomeLocation: cleanWaValue(activeReq.patientHomeLocation),
-      patientAge: cleanWaValue(activeReq.patientAge),
-      patientGender: cleanWaValue(activeReq.patientGender),
-      problemDisease: cleanWaValue(activeReq.problemDisease),
-      attendantName: cleanWaValue(activeReq.attendantName),
-      attendantPhone: cleanWaValue(activeReq.attendantPhone),
-      familyMemberDonation: cleanWaValue(activeReq.familyMemberDonation),
-      donationTimings: cleanWaValue(activeReq.donationTimings),
-      driveFolderUrl: activeReq.driveFolderUrl || "",
-      donorId: donor.id,
-      donorName: donor.name,
-      donorPhone: donor.phone,
-      componentDonated: component,
-      unitsDonated: units,
-      venue: venue,
-      feelingAfterDonation: feeling,
-      userDonationCount: userCount,
-      volunteerFeedback: feedback
-    };
-    appState.completedRequirements.unshift(completedItem);
-  }
+  const actualReqId = activeReq ? activeReq.reqId : (reqId && reqId !== "CUSTOM" ? reqId : `REQ-DON-${Date.now()}`);
+
+  const completedItem = {
+    reqId: actualReqId,
+    postedDate: activeReq ? activeReq.postedDate : logDate,
+    status: "Completed",
+    completedDate: logDate,
+    requiredComponent: activeReq ? cleanWaValue(activeReq.requiredComponent) : component,
+    bloodGroup: activeReq ? cleanWaValue(activeReq.bloodGroup) : (donor.bloodGroup || "O+"),
+    replacementAllowed: activeReq ? cleanWaValue(activeReq.replacementAllowed) : "Allowed",
+    noOfUnits: activeReq ? cleanWaValue(activeReq.noOfUnits) : `${units} Unit`,
+    hospitalName: activeReq ? cleanWaValue(activeReq.hospitalName) : venue,
+    hospitalArea: activeReq ? cleanWaValue(activeReq.hospitalArea) : "Delhi NCR",
+    patientName: activeReq ? cleanWaValue(activeReq.patientName) : "Direct Donation Patient",
+    uhidNo: activeReq ? cleanWaValue(activeReq.uhidNo) : "N/A",
+    patientHomeLocation: activeReq ? cleanWaValue(activeReq.patientHomeLocation) : "Delhi NCR",
+    patientAge: activeReq ? cleanWaValue(activeReq.patientAge) : "N/A",
+    patientGender: activeReq ? cleanWaValue(activeReq.patientGender) : "N/A",
+    problemDisease: activeReq ? cleanWaValue(activeReq.problemDisease) : "General Blood Need",
+    attendantName: activeReq ? cleanWaValue(activeReq.attendantName) : "Self / Volunteer",
+    attendantPhone: activeReq ? cleanWaValue(activeReq.attendantPhone) : donor.phone,
+    familyMemberDonation: activeReq ? cleanWaValue(activeReq.familyMemberDonation) : "N/A",
+    donationTimings: activeReq ? cleanWaValue(activeReq.donationTimings) : "10:00 AM to 5:00 PM",
+    driveFolderUrl: activeReq ? (activeReq.driveFolderUrl || "") : "",
+    familySlipUrl: activeReq ? (activeReq.familySlipUrl || "") : "",
+    donorId: donor.id,
+    donorName: donor.name,
+    donorPhone: donor.phone,
+    componentDonated: component,
+    unitsDonated: units,
+    venue: venue,
+    feelingAfterDonation: feeling,
+    userDonationCount: userCount,
+    volunteerFeedback: feedback
+  };
+
+  appState.completedRequirements.unshift(completedItem);
 
   renderAllViews();
   closeAllModals();
+
+  showToast(`Donation logged! Status set to Ineligible until ${nextEligStr}. Syncing to Google Sheets...`);
+
+  function finishSync(result) {
+    if (result && result.status === "SUCCESS") {
+      showToast(`Donation & eligibility update synced to Google Sheets!`);
+    } else {
+      showToast(`Donation logged locally, but syncing to Google Sheets failed. Please check your connection.`);
+    }
+    fetchLiveDataFromGoogleSheets(true);
+  }
 
   if (completedItem) {
     if (selfieFileInput && selfieFileInput.files && selfieFileInput.files[0]) {
@@ -11254,15 +11791,13 @@ function handleLogDonation() {
           ...completedItem,
           donorPhotoBase64: donorPhotoBase64,
           donorPhotoMimeType: file.type
-        });
+        }).then(finishSync);
       };
       reader.readAsDataURL(file);
     } else {
-      syncToGoogleWebhook({ action: "MARK_COMPLETED_REQUEST", ...completedItem });
+      syncToGoogleWebhook({ action: "MARK_COMPLETED_REQUEST", ...completedItem }).then(finishSync);
     }
   }
-
-  showToast(`Donation logged! ${component} Count updated to ${userCount}!`);
 }
 
 function handleEditDonorSave() {
@@ -11275,11 +11810,16 @@ function handleEditDonorSave() {
     appState.donors[dIdx].name = document.getElementById("editName").value.trim();
     appState.donors[dIdx].phone = document.getElementById("editPhone").value.trim();
     appState.donors[dIdx].bloodGroup = document.getElementById("editBloodGroup").value;
+    appState.donors[dIdx].rssMember = document.getElementById("editRssMember").value;
     appState.donors[dIdx].dob = document.getElementById("editDob").value.trim() || "Not Available";
     appState.donors[dIdx].homeArea = document.getElementById("editHomeArea").value.trim();
     appState.donors[dIdx].pincode = document.getElementById("editPincode").value.trim();
     appState.donors[dIdx].officeArea = document.getElementById("editOfficeArea").value.trim() || "Not Available";
     appState.donors[dIdx].profession = document.getElementById("editProfession").value.trim() || "Not Available";
+    
+    // Admin Override Controls
+    appState.donors[dIdx].eligibilityStatus = document.getElementById("editEligibilityStatus").value;
+    appState.donors[dIdx].nextEligibilityDate = document.getElementById("editNextEligibilityDate").value || "Eligible Now";
 
     if (appState.currentUser && appState.currentUser.id === donorId) {
       appState.currentUser = appState.donors[dIdx];
@@ -11288,7 +11828,14 @@ function handleEditDonorSave() {
 
     renderDonorsTable();
     closeAllModals();
-    showToast(`Donor ${donorId} profile updated!`);
+    showToast(`Saving Donor ${donorId} to Google Sheets...`);
+    syncToGoogleWebhook({ action: "REGISTER_DONOR", ...appState.donors[dIdx] }).then(result => {
+      if (result && result.status === "SUCCESS") {
+        showToast(`Donor ${donorId} profile updated & synced to Sheet!`);
+      } else {
+        showToast(`Donor ${donorId} updated locally, but the sync to Google Sheets failed. Please retry.`);
+      }
+    });
   }
 }
 
@@ -11301,7 +11848,15 @@ function deleteDonor(donorId) {
     appState.donors = appState.donors.filter(d => d.id !== donorId);
     renderDonorsTable();
     document.getElementById("totalDonorsCount").textContent = appState.donors.length;
-    showToast(`Donor ${donorId} deleted.`);
+    showToast(`Donor ${donorId} deleted. Syncing to Google Sheets...`);
+
+    syncToGoogleWebhook({ action: "DELETE_DONOR", donorId: donorId }).then(result => {
+      if (result && result.status === "SUCCESS") {
+        showToast(`Donor ${donorId} removed from Google Sheets too.`);
+      } else {
+        showToast(`Donor ${donorId} deleted locally, but removing from Google Sheets failed. Please retry.`);
+      }
+    });
   }
 }
 
@@ -11315,11 +11870,16 @@ function openEditDonorModal(donorId) {
   document.getElementById("editName").value = donor.name;
   document.getElementById("editPhone").value = donor.phone;
   document.getElementById("editBloodGroup").value = donor.bloodGroup;
+  document.getElementById("editRssMember").value = donor.rssMember || "No";
   document.getElementById("editDob").value = donor.dob;
   document.getElementById("editHomeArea").value = donor.homeArea;
   document.getElementById("editPincode").value = donor.pincode;
   document.getElementById("editOfficeArea").value = donor.officeArea === "Not Available" ? "" : donor.officeArea;
   document.getElementById("editProfession").value = donor.profession === "Not Available" ? "" : donor.profession;
+
+  const eligInfo = getEligibilityInfo(donor);
+  document.getElementById("editEligibilityStatus").value = donor.eligibilityStatus || (eligInfo.isEligible ? "Eligible" : "Ineligible");
+  document.getElementById("editNextEligibilityDate").value = donor.nextEligibilityDate !== "Eligible Now" ? donor.nextEligibilityDate : "";
 
   openModal("editDonorModal");
 }
@@ -11335,7 +11895,7 @@ function openCongratulateModal(reqId) {
 
   const donor = appState.donors.find(d => d.id === req.donorId) || {
     name: req.donorName, homeArea: "Delhi NCR", profession: "निष्ठावान नागरिक",
-    bloodDonations: 1, plateletsDonations: 0, plasmaDonations: 0
+    bloodDonations: 1, plateletsDonations: 0, plasmaDonations: 0, rssMember: "No"
   };
 
   const donorName = donor.name;
@@ -11349,10 +11909,11 @@ function openCongratulateModal(reqId) {
   const attendantName = cleanWaValue(req.attendantName) || "परिजन";
   const attendantPhone = cleanWaValue(req.attendantPhone) || "संपर्क";
 
-  const hindiMsg = `${donorName} जी आप ${homeArea} में रहते हैं और आप एक ${profession} के नाते कार्यरत हैं। 
-आप संघ/RSS के स्वयंसेवक हैं।
+  // CONDITIONAL RSS LINE: Included ONLY if donor is RSS Member (Yes)
+  const isRssMember = (donor.rssMember === "Yes" || donor.rssMember === "yes");
+  const rssLineText = isRssMember ? "\nआप संघ/RSS के स्वयंसेवक हैं।\n" : "\n";
 
-आवश्यकता का पता लगने पर तुरंत ही रक्तदान के लिए तैयार हो गए। ऑफिस में आग्रह करके, कार्य से समय निकाला और इस नेक कार्य के लिए अपना योगदान दिया। ईश्वर सदा आप पर अपनी कृपा बनाए रखे।
+  const hindiMsg = `${donorName} जी आप ${homeArea} में रहते हैं और आप एक ${profession} के नाते कार्यरत हैं।${rssLineText}आवश्यकता का पता लगने पर तुरंत ही रक्तदान के लिए तैयार हो गए। ऑफिस में आग्रह करके, कार्य से समय निकाला और इस नेक कार्य के लिए अपना योगदान दिया। ईश्वर सदा आप पर अपनी कृपा बनाए रखे।
 
 डोनेशन काउंट
 ब्लड        -  ➡️ ${bldCnt}
@@ -11406,7 +11967,58 @@ function renderAllViews() {
   renderRequirements();
   renderCompletedRequirementsTable();
   renderDonorsTable();
+  renderMonthlyDonationsChart();
   checkAuthenticationGuard();
+}
+
+function isBirthdayToday(dobStr, now = new Date()) {
+  if (!dobStr || dobStr === "Not Available" || typeof dobStr !== "string") return false;
+  
+  const targetMm = now.getMonth() + 1;
+  const targetDd = now.getDate();
+  const str = dobStr.trim();
+
+  const m1 = str.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/);
+  if (m1) {
+    return parseInt(m1[2], 10) === targetMm && parseInt(m1[3], 10) === targetDd;
+  }
+
+  const m2 = str.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})$/);
+  if (m2) {
+    return parseInt(m2[2], 10) === targetMm && parseInt(m2[1], 10) === targetDd;
+  }
+
+  const m3 = str.match(/^(\d{1,2})[-/](\d{1,2})$/);
+  if (m3) {
+    const p1 = parseInt(m3[1], 10);
+    const p2 = parseInt(m3[2], 10);
+    return (p1 === targetMm && p2 === targetDd) || (p2 === targetMm && p1 === targetDd);
+  }
+
+  const d = new Date(str);
+  if (!isNaN(d.getTime())) {
+    return (d.getMonth() + 1) === targetMm && d.getDate() === targetDd;
+  }
+
+  return false;
+}
+
+function sendBirthdayWishWhatsApp(donorId) {
+  if (!appState.isAdmin) {
+    showToast("Only Administrator can send WhatsApp Birthday Wishes!");
+    return;
+  }
+
+  const donor = appState.donors.find(d => d.id === donorId);
+  if (!donor) return;
+
+  let waPhone = (donor.phone || "").replace(/\D/g, "");
+  if (waPhone.length === 10) waPhone = "91" + waPhone;
+
+  const hindiBirthdayMsg = `🎂 जन्मदिन की हार्दिक शुभकामनाएं, ${donor.name} जी! 🎉\n\nब्लड डोनर्स दिल्ली ग्रुप की तरफ से आपको जन्मदिन की बहुत-बहुत बधाई! 🩸❤️\n\nईश्वर से आपकी लंबी उम्र और सदा स्वस्थ रहने की कामना करते हैं। आपका एक रक्तदान 3 मासूम जिंदगियों को नया जीवन देता है — आज हम आपके इस नेक दिल को सलाम करते हैं! \n\nमुस्कुराते रहें, स्वस्थ रहें और रक्तदान करते रहें! 🌟\n\n— टीम ब्लड डोनर्स दिल्ली 🩸`;
+
+  const url = `https://wa.me/${waPhone}?text=${encodeURIComponent(hindiBirthdayMsg)}`;
+  window.open(url, "_blank");
 }
 
 function renderTodayBirthdaySection() {
@@ -11421,21 +12033,35 @@ function renderTodayBirthdaySection() {
   sec.style.display = "block";
   container.innerHTML = "";
 
-  const todayStr = "07-19"; // July 19
-  const bdayDonors = appState.donors.filter(d => d.dob && d.dob.includes(todayStr));
+  const now = new Date();
+  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const formattedToday = `${now.getDate()} ${monthNames[now.getMonth()]}`;
 
-  const listToRender = bdayDonors.length > 0 ? bdayDonors : appState.donors.slice(0, 3);
+  const bdayDonors = appState.donors.filter(d => isBirthdayToday(d.dob, now));
 
-  listToRender.forEach(d => {
+  if (bdayDonors.length === 0) {
+    container.innerHTML = `
+      <div style="width: 100%; padding: 16px; background: rgba(30, 41, 59, 0.6); border: 1px dashed rgba(245, 158, 11, 0.4); border-radius: 10px; color: #CBD5E1; font-size: 0.92rem; display: flex; align-items: center; gap: 10px;">
+        <span style="font-size: 1.4rem;">🎂</span>
+        <div>
+          <strong>No Verified Donor Birthdays Today (${formattedToday})</strong>
+          <div style="font-size: 0.82rem; color: #94A3B8; margin-top: 2px;">We continuously check all master donor DOB records daily to highlight birthday heroes!</div>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  bdayDonors.forEach(d => {
     const card = document.createElement("div");
     card.className = "birthday-donor-chip";
-    card.style.cssText = "background: #1E293B; border: 1px solid #F59E0B; padding: 12px 16px; border-radius: 10px; display: flex; align-items: center; justify-content: space-between; gap: 16px; min-width: 280px;";
+    card.style.cssText = "background: #1E293B; border: 1px solid #F59E0B; padding: 14px 18px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; gap: 16px; min-width: 300px; flex: 1; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.15);";
     card.innerHTML = `
       <div>
-        <strong style="color: #F59E0B; font-size: 1rem;">🎂 ${d.name} (${d.id})</strong>
-        <p style="font-size: 0.85rem; color: #94A3B8; margin: 2px 0 0 0;">📍 ${d.homeArea} | Blood: ${d.bloodGroup}</p>
+        <strong style="color: #F59E0B; font-size: 1.05rem; display: block;">🎂 ${d.name} (${d.id})</strong>
+        <p style="font-size: 0.85rem; color: #94A3B8; margin: 4px 0 0 0;">📍 ${d.homeArea || "Delhi NCR"} | Blood: <span class="bg-pill" style="font-size: 0.72rem;">${d.bloodGroup}</span></p>
       </div>
-      <button class="btn btn-sm btn-crimson" onclick="sendBirthdayWishWhatsApp('${d.id}')">🎉 Wish Birthday (Admin)</button>
+      <button class="btn btn-sm btn-crimson" onclick="sendBirthdayWishWhatsApp('${d.id}')" style="background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); color: #0F172A; font-weight: 700; border: none;">🎉 Wish Birthday on WhatsApp</button>
     `;
     container.appendChild(card);
   });
@@ -11451,7 +12077,7 @@ function renderLeaderboard() {
     .slice(0, 10);
 
   if (sortedDonors.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: #94A3B8; padding: 20px;">No donor statistics available.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #94A3B8; padding: 20px;">No donor statistics available.</td></tr>`;
     return;
   }
 
@@ -11465,8 +12091,7 @@ function renderLeaderboard() {
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>${rankBadge}</td>
-      <td><strong>${donor.id}</strong></td>
-      <td>${donor.name}</td>
+      <td><strong>${donor.name}</strong><div class="sub-line">${donor.id}</div></td>
       <td><span class="bg-pill">${donor.bloodGroup}</span></td>
       <td>${donor.homeArea}</td>
       <td>${donor.phone}</td>
@@ -11489,13 +12114,28 @@ function renderCompletedRequirementsTable() {
   const sortOrder = document.getElementById("compSortOrder") ? document.getElementById("compSortOrder").value : "LATEST_TO_OLDEST";
 
   const filtered = appState.completedRequirements.filter(req => {
-    const matchPatient = !searchPatient || 
-      (req.patientName && req.patientName.toLowerCase().includes(searchPatient)) ||
-      (req.hospitalName && req.hospitalName.toLowerCase().includes(searchPatient));
+    const pName = String(req.patientName || "").toLowerCase();
+    const hName = String(req.hospitalName || "").toLowerCase();
+    const hArea = String(req.hospitalArea || "").toLowerCase();
+    const bGroup = String(req.bloodGroup || "").toLowerCase();
+    const reqComp = String(req.componentDonated || req.requiredComponent || "").toLowerCase();
 
-    const matchDonorId = !filterDonorId || (req.donorId && req.donorId.toLowerCase().includes(filterDonorId));
-    const matchDonorName = !filterDonorName || (req.donorName && req.donorName.toLowerCase().includes(filterDonorName));
-    const matchReqId = !filterReqId || (req.reqId && req.reqId.toLowerCase().includes(filterReqId));
+    const matchPatient = !searchPatient || 
+      pName.includes(searchPatient) ||
+      hName.includes(searchPatient) ||
+      hArea.includes(searchPatient) ||
+      bGroup.includes(searchPatient) ||
+      reqComp.includes(searchPatient);
+
+    const dId = String(req.donorId || "").toLowerCase();
+    const matchDonorId = !filterDonorId || dId.includes(filterDonorId);
+
+    const dName = String(req.donorName || "").toLowerCase();
+    const dPhone = String(req.donorPhone || "").toLowerCase();
+    const matchDonorName = !filterDonorName || dName.includes(filterDonorName) || dPhone.includes(filterDonorName);
+
+    const rId = String(req.reqId || "").toLowerCase();
+    const matchReqId = !filterReqId || rId.includes(filterReqId);
 
     return matchPatient && matchDonorId && matchDonorName && matchReqId;
   });
@@ -11510,7 +12150,6 @@ function renderCompletedRequirementsTable() {
     } else if (sortOrder === "DONOR_NAME_ASC") {
       return (a.donorName || "").localeCompare(b.donorName || "");
     } else {
-      // Default: LATEST_TO_OLDEST
       const dateA = parseJsDate(a.completedDate || a.postedDate);
       const dateB = parseJsDate(b.completedDate || b.postedDate);
       return dateB - dateA;
@@ -11521,7 +12160,7 @@ function renderCompletedRequirementsTable() {
     countBadge.textContent = `Showing ${filtered.length} of ${appState.completedRequirements.length} entries found`;
   }
 
-  const colCount = appState.isAdmin ? 11 : 10;
+  const colCount = appState.isAdmin ? 7 : 6;
 
   if (filtered.length === 0) {
     tbody.innerHTML = `<tr><td colspan="${colCount}" style="text-align: center; color: #94A3B8; padding: 24px;">No matching completed requests found.</td></tr>`;
@@ -11533,13 +12172,15 @@ function renderCompletedRequirementsTable() {
     tr.innerHTML = `
       <td><strong>${req.reqId}</strong></td>
       <td>${req.completedDate || req.postedDate || 'N/A'}</td>
-      <td><strong>${cleanWaValue(req.patientName)}</strong></td>
-      <td><span class="bg-pill">${cleanWaValue(req.bloodGroup)}</span></td>
-      <td>${cleanWaValue(req.hospitalName)}</td>
-      <td>${cleanWaValue(req.componentDonated || req.requiredComponent)}</td>
-      <td>${cleanWaValue(req.noOfUnits)}</td>
+      <td>
+        <strong>${cleanWaValue(req.patientName)}</strong>
+        <div class="sub-line">${cleanWaValue(req.hospitalName)}${req.hospitalArea ? ', ' + cleanWaValue(req.hospitalArea) : ''}</div>
+      </td>
       <td><span class="badge badge-success">${req.donorId}</span></td>
-      <td>${req.donorName}</td>
+      <td>
+        ${req.donorName}
+        <div class="sub-line"><span class="bg-pill" style="font-size:0.68rem;">${cleanWaValue(req.bloodGroup)}</span> ${cleanWaValue(req.componentDonated || req.donatedComponent || "Blood")} · ${cleanWaValue(req.unitsDonated || req.donatedUnits || "1 Unit")}</div>
+      </td>
       <td>${req.donorPhone}</td>
       ${appState.isAdmin ? `<td><button class="btn btn-sm btn-crimson" onclick="openCongratulateModal('${req.reqId}')">💬 Congratulate</button></td>` : ''}
     `;
@@ -11569,13 +12210,82 @@ function updateUserHeader() {
     document.getElementById("welcomeSubtext").textContent = "Please log in to access your volunteer portal dashboard.";
   }
 
-  document.getElementById("totalDonorsCount").textContent = appState.donors.length;
-  document.getElementById("totalExecutedDonationsCount").textContent = appState.completedRequirements.length;
+  const eligibleCount = appState.donors.filter(d => getEligibilityInfo(d).isEligible).length;
+  const totalDonorsElem = document.getElementById("totalDonorsCount");
+  const totalEligibleElem = document.getElementById("totalEligibleDonorsCount");
+  const totalExecutedElem = document.getElementById("totalExecutedDonationsCount");
+
+  if (totalDonorsElem) totalDonorsElem.textContent = appState.donors.length;
+  if (totalEligibleElem) totalEligibleElem.textContent = eligibleCount;
+  if (totalExecutedElem) totalExecutedElem.textContent = appState.completedRequirements.length;
+}
+
+function renderMonthlyDonationsChart() {
+  const container = document.getElementById("monthlyDonationsChartContainer");
+  const badge = document.getElementById("totalChartDonationsBadge");
+  if (!container) return;
+
+  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const now = new Date(CURRENT_APP_DATE);
+  
+  const monthlyData = [];
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    const label = `${monthNames[d.getMonth()]} '${String(d.getFullYear()).slice(-2)}`;
+    monthlyData.push({ key: key, label: label, count: 0 });
+  }
+
+  let totalCount = 0;
+  if (appState.completedRequirements && appState.completedRequirements.length > 0) {
+    appState.completedRequirements.forEach(req => {
+      totalCount++;
+      const dateStr = req.completedDate || req.postedDate;
+      if (dateStr) {
+        const itemDate = new Date(dateStr);
+        if (!isNaN(itemDate.getTime())) {
+          const key = `${itemDate.getFullYear()}-${String(itemDate.getMonth() + 1).padStart(2, '0')}`;
+          const found = monthlyData.find(m => m.key === key);
+          if (found) found.count++;
+        }
+      }
+    });
+  }
+
+  const sumDonorDonations = appState.donors.reduce((acc, d) => acc + (parseInt(d.totalDonations) || 1), 0);
+  if (totalCount === 0) totalCount = sumDonorDonations;
+  
+  const maxVal = Math.max(...monthlyData.map(m => m.count), 1);
+
+  if (badge) {
+    badge.textContent = `${totalCount} Executed Donations`;
+  }
+
+  let barsHTML = `
+    <div style="display: flex; align-items: flex-end; justify-content: space-around; height: 180px; padding-top: 30px; border-bottom: 2px solid rgba(226, 232, 240, 0.1); gap: 12px;">
+  `;
+
+  monthlyData.forEach(item => {
+    const pct = Math.max(Math.round((item.count / maxVal) * 100), item.count > 0 ? 14 : 6);
+    const barColor = item.count === maxVal && item.count > 0 
+      ? 'linear-gradient(180deg, #10B981 0%, #059669 100%)' 
+      : 'linear-gradient(180deg, #DC2626 0%, #991B1B 100%)';
+    
+    barsHTML += `
+      <div style="flex: 1; display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: flex-end; max-width: 65px;">
+        <span style="font-size: 0.8rem; font-weight: 700; color: ${item.count > 0 ? '#F8FAFC' : '#64748B'}; margin-bottom: 6px;">${item.count}</span>
+        <div style="width: 100%; height: ${pct}%; background: ${barColor}; border-radius: 6px 6px 0 0; transition: height 0.4s ease; box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25);"></div>
+        <span style="font-size: 0.75rem; font-weight: 600; color: #94A3B8; margin-top: 8px; text-transform: uppercase; letter-spacing: 0.5px;">${item.label}</span>
+      </div>
+    `;
+  });
+
+  barsHTML += `</div>`;
+  container.innerHTML = barsHTML;
 }
 
 function renderEligibilityCard() {
-  const lastDateStr = appState.currentUser ? appState.currentUser.lastDonationDate : null;
-  const elig = getEligibilityInfo(lastDateStr);
+  const elig = getEligibilityInfo(appState.currentUser);
 
   const globalBadge = document.getElementById("eligibilityGlobalBadge");
   const wbStatus = document.getElementById("wholeBloodStatus");
@@ -11590,10 +12300,10 @@ function renderEligibilityCard() {
     plsmStatus.innerHTML = `<span class="status-tag status-green">Eligible Now</span>`;
   } else {
     globalBadge.className = "badge badge-warning";
-    globalBadge.textContent = `Ineligible (${elig.daysRemaining} days left)`;
-    wbStatus.innerHTML = `<span class="status-tag status-orange">${elig.daysRemaining} Days Remaining</span>`;
+    globalBadge.textContent = `Ineligible (Until ${elig.nextDateStr})`;
+    wbStatus.innerHTML = `<span class="status-tag status-orange">Ineligible until ${elig.nextDateStr}</span>`;
     pltStatus.innerHTML = `<span class="status-tag status-green">Eligible (Platelets)</span>`;
-    plsmStatus.innerHTML = `<span class="status-tag status-orange">${elig.daysRemaining} Days Remaining</span>`;
+    plsmStatus.innerHTML = `<span class="status-tag status-orange">Ineligible until ${elig.nextDateStr}</span>`;
   }
 }
 
@@ -11629,7 +12339,7 @@ function renderRequirements() {
         <span class="bg-pill">${cleanWaValue(req.bloodGroup)}</span>
         <span class="urgency-tag ${req.urgency ? req.urgency.toLowerCase() : 'urgent'}">${req.urgency || 'URGENT'}</span>
       </div>
-      <h3 class="req-patient">${cleanPatient} ${ageGenderStr ? `(${ageGenderStr})` : ''}</h3>
+      <h3 class="req-patient">${req.reqId} ${cleanPatient} ${ageGenderStr ? `(${ageGenderStr})` : ''}</h3>
       <p class="req-hospital">🏥 ${cleanHospital} ${cleanArea ? `(${cleanArea})` : ''}</p>
 
       <div class="req-fields-grid">
@@ -11660,7 +12370,8 @@ function renderDonorsTable() {
 
   const query = document.getElementById("searchInput").value.trim().toLowerCase();
   const bgFilter = document.getElementById("filterBloodGroup").value;
-  const compFilter = document.getElementById("filterComponent").value;
+  const sortOrder = document.getElementById("donorSortOrder") ? document.getElementById("donorSortOrder").value : "MOST_DONATIONS_DESC";
+  const rssFilter = document.getElementById("filterRss").value;
   const eligFilter = document.getElementById("filterEligibility").value;
 
   const filtered = appState.donors.filter(donor => {
@@ -11668,42 +12379,76 @@ function renderDonorsTable() {
       donor.name.toLowerCase().includes(query) ||
       donor.phone.includes(query) ||
       donor.homeArea.toLowerCase().includes(query) ||
-      donor.pincode.includes(query);
+      donor.pincode.includes(query) ||
+      donor.id.toLowerCase().includes(query);
 
     const matchBg = bgFilter === "ALL" || donor.bloodGroup === bgFilter;
-    const matchComp = compFilter === "ALL" || (donor.lastComponent && donor.lastComponent.toLowerCase() === compFilter.toLowerCase());
-    const eligInfo = getEligibilityInfo(donor.lastDonationDate);
+    
+    const donorRss = (donor.rssMember || "No").trim().toLowerCase();
+    const targetRss = (rssFilter || "ALL").trim().toLowerCase();
+    const matchRss = (targetRss === "all") ||
+      (targetRss === "yes" && (donorRss === "yes" || donorRss === "true")) ||
+      (targetRss === "no" && (donorRss === "no" || donorRss === "false" || !donorRss));
+
+    const eligInfo = getEligibilityInfo(donor);
     const matchElig = eligFilter === "ALL" || 
       (eligFilter === "ELIGIBLE" && eligInfo.isEligible) ||
       (eligFilter === "INELIGIBLE" && !eligInfo.isEligible);
 
-    return matchQuery && matchBg && matchComp && matchElig;
+    return matchQuery && matchBg && matchRss && matchElig;
+  });
+
+    filtered.sort((a, b) => {
+    if (sortOrder === "LEAST_DONATIONS_ASC") {
+      return (a.totalDonations || 0) - (b.totalDonations || 0);
+    } else if (sortOrder === "NAME_ASC") {
+      return (a.name || "").localeCompare(b.name || "");
+    } else if (sortOrder === "DONOR_ID_ASC") {
+      const numA = parseInt(String(a.id || "").replace(/\D/g, "")) || 0;
+      const numB = parseInt(String(b.id || "").replace(/\D/g, "")) || 0;
+      return numA - numB;
+    } else if (sortOrder === "LATEST_DONATION_DESC") {
+      const dateA = parseJsDate(a.lastDonationDate);
+      const dateB = parseJsDate(b.lastDonationDate);
+      return dateB - dateA;
+    } else {
+      return (b.totalDonations || 0) - (a.totalDonations || 0);
+    }
   });
 
   if (filtered.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="11" style="text-align: center; color: #94A3B8; padding: 24px;">No matching donors found.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: #94A3B8; padding: 24px;">No matching donors found.</td></tr>`;
     return;
   }
 
   filtered.forEach(donor => {
-    const elig = getEligibilityInfo(donor.lastDonationDate);
-    const eligBadgeHtml = elig.isEligible
-      ? `<span class="badge badge-success">Eligible</span>`
-      : `<span class="badge badge-warning" title="${elig.daysRemaining} days left">${elig.daysRemaining}d Left</span>`;
+    const elig = getEligibilityInfo(donor);
+
+    const rssText = (donor.rssMember === "Yes" || donor.rssMember === "yes")
+      ? `<span style="color:#F59E0B; font-weight:600;">RSS: Yes</span>`
+      : `RSS: No`;
 
     const tr = document.createElement("tr");
+    tr.className = elig.isEligible ? "row-eligible" : "row-ineligible";
     tr.innerHTML = `
-      <td><strong>${donor.id}</strong></td>
-      <td>${donor.name}</td>
-      <td><span class="bg-pill">${donor.bloodGroup}</span></td>
-      <td><strong style="color: #10B981; font-size: 1rem;">${donor.totalDonations || 1} Donations</strong></td>
-      <td>${donor.homeArea}</td>
-      <td>${donor.pincode}</td>
-      <td>${donor.phone}</td>
-      <td>${donor.age}</td>
-      <td>${donor.lastDonationDate || 'Not Available'}</td>
-      <td>${eligBadgeHtml}</td>
-      <td>
+      <td style="width: 90px; white-space: nowrap;"><strong>${donor.id}</strong></td>
+      <td style="max-width: 200px; word-break: break-word; white-space: normal;">
+        <strong>${donor.name}</strong>
+        <div class="sub-line" style="white-space: normal; word-break: break-word;">
+          <span style="color:#10B981; font-weight:600;">${donor.totalDonations || 1} donations</span> ·
+          ${rssText} ·
+          Age: ${donor.age} ·
+          Last: ${donor.lastDonationDate || 'Not Available'}
+        </div>
+      </td>
+      <td style="width: 75px; text-align: center;"><span class="bg-pill">${donor.bloodGroup}</span></td>
+      <td style="max-width: 160px; word-break: break-word; white-space: normal;">
+        <div style="font-weight: 500;">${donor.homeArea || 'Not Available'}</div>
+        <div style="font-size: 0.76rem; color: #94A3B8; margin-top: 2px;">📍 ${donor.pincode || 'N/A'}</div>
+      </td>
+      <td style="width: 120px; white-space: nowrap;">${donor.phone}</td>
+      <td style="width: 130px; white-space: nowrap;"><span style="color:${elig.isEligible ? '#10B981' : '#F59E0B'}; font-weight:600;">${elig.nextDateStr}</span></td>
+      <td style="width: 120px; white-space: nowrap;">
         ${appState.isAdmin ? `<button class="btn btn-sm btn-secondary" onclick="openEditDonorModal('${donor.id}')">Edit</button>` : ''}
         ${appState.isAdmin ? `<button class="btn btn-sm btn-crimson" style="margin-left:4px;" onclick="deleteDonor('${donor.id}')">Delete</button>` : ''}
       </td>
@@ -11713,18 +12458,31 @@ function renderDonorsTable() {
 }
 
 function syncToGoogleWebhook(payload) {
-  if (!appState.webhookUrl) return;
+  // IMPORTANT: Do NOT use mode:"no-cors" and do NOT use Content-Type: application/json.
+  // Google Apps Script Web Apps do not handle CORS preflight (OPTIONS) requests, so a
+  // POST sent with an "application/json" header (which triggers a preflight) or in
+  // "no-cors" mode (which makes the response unreadable) silently fails or drops data
+  // without ever throwing an error - this was why edits/logs were not reaching the Sheet.
+  // Using "text/plain" avoids the preflight (Apps Script still JSON.parses the body fine),
+  // and keeping the default "cors" mode lets us read back the real success/failure + donorId.
+  if (!appState.webhookUrl) {
+    return Promise.resolve({ status: "ERROR", message: "No script URL configured" });
+  }
 
-  fetch(appState.webhookUrl, {
+  return fetch(appState.webhookUrl, {
     method: "POST",
-    mode: "no-cors",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
     body: JSON.stringify(payload)
-  }).then(() => {
-    console.log("Synced to Google Sheets/Drive Webhook");
-  }).catch(err => {
-    console.error("Webhook sync error:", err);
-  });
+  })
+    .then(res => res.json())
+    .then(data => {
+      console.log("Synced to Google Sheets/Drive Webhook:", data);
+      return data;
+    })
+    .catch(err => {
+      console.error("Webhook sync error:", err);
+      return { status: "ERROR", message: err.toString() };
+    });
 }
 
 function showToast(msg) {
